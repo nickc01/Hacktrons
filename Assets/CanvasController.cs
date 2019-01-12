@@ -27,7 +27,13 @@ public class CanvasController : MonoBehaviour {
             Towards.SetActive(true);
             float TowardsZ = 300;
             float AwayZ = 0;
+            float T = 0;
             Towards.transform.localPosition = new Vector3(0, 0, 300);
+            AwayFrom.transform.localPosition = new Vector3(0, 0, 0);
+            while (T < 1)
+            {
+
+            }
         });
     }
 }
