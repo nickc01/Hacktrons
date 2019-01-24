@@ -1,0 +1,31 @@
+{ "height":8,
+ "infinite":false,
+ "layers":[
+        {
+         "data":[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 0, 2, 1, 1, 1, 1, 1, 0],
+         "height":8,
+         "id":5,
+         "name":"Tile Layer 1",
+         "opacity":1,
+         "type":"tilelayer",
+         "visible":true,
+         "width":8,
+         "x":0,
+         "y":0
+        }],
+ "nextlayerid":6,
+ "nextobjectid":1,
+ "orientation":"orthogonal",
+ "renderorder":"left-down",
+ "tiledversion":"1.2.1",
+ "tileheight":100,
+ "tilesets":[
+        {
+         "firstgid":1,
+         "source":"..\/..\/..\/..\/..\/Downloads\/Main Tiles.tsx"
+        }],
+ "tilewidth":100,
+ "type":"map",
+ "version":1.2,
+ "width":8
+}

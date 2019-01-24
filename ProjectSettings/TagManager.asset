@@ -3,7 +3,10 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - LevelContainer
+  - SelectionTarget
+  - Arrow
   layers:
   - Default
   - TransparentFX
@@ -14,7 +17,7 @@ TagManager:
   - 
   - 
   - PostProcessing
-  - 
+  - Background
   - 
   - 
   - 
@@ -43,4 +46,13 @@ TagManager:
     locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Trails
+    uniqueID: 3763016653
+    locked: 0
+  - name: Characters
+    uniqueID: 3821774383
+    locked: 0
+  - name: SelectionTarget
+    uniqueID: 305666783
     locked: 0
