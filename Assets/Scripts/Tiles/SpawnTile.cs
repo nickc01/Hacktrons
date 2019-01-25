@@ -14,18 +14,18 @@ public class SpawnTile : Tile
     {
         base.OnSpawn();
         SpawnTiles.Add(this);
-        Debug.Log(SpawnTiles.Count);
+        CDebug.Log(SpawnTiles.Count);
         gameObject.AddComponent<BoxCollider2D>().isTrigger = true;
         GameManager.GameStartEvent += OnGameStart;
     }
 
     void OnGameStart()
     {
-        Debug.Log("SPAWNTILES = " + SpawnTiles.Count);
+        CDebug.Log("SPAWNTILES = " + SpawnTiles.Count);
         SpawnTiles.Remove(this);
-        Debug.Log("TILE IS NULL = " + (this == null));
-        Debug.Log("Transform = " + transform);
-        Debug.Log("Position = " + transform.position);
+        CDebug.Log("TILE IS NULL = " + (this == null));
+        CDebug.Log("Transform = " + transform);
+        CDebug.Log("Position = " + transform.position);
         Vector2 Position = transform.position;
         TileManager.DestroyTile(new Vector2Int((int)Position.x,(int)Position.y));
         TileManager.SpawnTile<BasicTile>(new Vector2Int((int)Position.x,(int)Position.y));

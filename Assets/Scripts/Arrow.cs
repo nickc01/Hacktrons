@@ -35,8 +35,8 @@ public class Arrow : MonoBehaviour
     
     void OnMouseDown()
     {
-        Debug.Log("Active Player = " + Player.ActivePlayer);
-        Debug.Log("Enabled = " + Enabled);
+        CDebug.Log("Active Player = " + Player.ActivePlayer);
+        CDebug.Log("Enabled = " + Enabled);
         if (Player.ActivePlayer != null && Enabled)
         {
             Vector2Int newPosition = new Vector2Int((int)Player.ActivePlayer.transform.position.x, (int)Player.ActivePlayer.transform.position.y);

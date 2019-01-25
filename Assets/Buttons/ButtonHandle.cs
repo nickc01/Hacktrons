@@ -40,7 +40,7 @@ public class ButtonHandle : MonoBehaviour
 #if DebugButtons
         else
         {
-            Debug.LogError("The Selection is null for " + gameObject);
+            //CDebug.LogError("The Selection is null for " + gameObject);
         }
 #endif
 

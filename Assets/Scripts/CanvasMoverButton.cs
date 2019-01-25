@@ -19,7 +19,7 @@ public class CanvasMoverButton : MonoBehaviour
     }
     private void OnClick()
     {
-        Debug.Log("CLICKED");
+        CDebug.Log("CLICKED");
        // CanvasController.Move(From, To);
     }
     void OnDestroy()

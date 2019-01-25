@@ -15,14 +15,14 @@ public class CameraTarget : MonoBehaviour
     {
         maintarget = this;
         mainCameras = FindObjectsOfType<Camera>();
-        //Debug.Log("Start Mover");
+        //CDebug.Log("Start Mover");
     }
 
     void Update()
     {
         if (Active)
         {
-            //Debug.Log($"Camera = {mainCamera}");
+            //CDebug.Log($"Camera = {mainCamera}");
             foreach (var mainCamera in mainCameras)
             {
                 mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, Position, Time.deltaTime * maintarget.CameraSpeed);

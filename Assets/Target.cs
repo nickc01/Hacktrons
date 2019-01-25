@@ -19,7 +19,7 @@ public class Target : MonoBehaviour
     }
     void OnMouseDown()
     {
-        Debug.Log("CLICKED");
+        CDebug.Log("CLICKED");
         TargetSelectEvent?.Invoke();
     }
 }

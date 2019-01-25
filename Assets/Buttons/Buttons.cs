@@ -20,8 +20,8 @@ namespace Game
 
         public static void StartGameButton()
         {
-            //sDebug.Log("Start Game Button");
-           // Debug.Log("Players = " + Player.Players.Count);
+            //sCDebug.Log("Start Game Button");
+           // CDebug.Log("Players = " + Player.Players.Count);
             if (Player.Players.Count > 0)
             {
                 GameManager.StartGame();
@@ -59,6 +59,11 @@ namespace Game
         public static void BackButton()
         {
             GameManager.ResetToSelectionScreen();
+        }
+
+        public static void QuitButton()
+        {
+            Application.Quit();
         }
     }
 }

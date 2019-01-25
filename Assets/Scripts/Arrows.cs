@@ -87,10 +87,10 @@ public struct Arrows
             var gameTile = TileManager.GetGameTile(x, y);
             if (gameTile == null)
             {
-                Debug.Log("NULL");
+                CDebug.Log("NULL");
                 return true;
             }
-            Debug.Log("NOT NULL");
+            CDebug.Log("NOT NULL");
         }
         return false;
     }

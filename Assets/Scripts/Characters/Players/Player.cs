@@ -25,7 +25,7 @@ public class Player : Character
 
     public override void Select()
     {
-        Debug.Log("PLAYERS TURN" + PlayersTurn);
+        CDebug.Log("PLAYERS TURN" + PlayersTurn);
         if (PlayersTurn)
         {
             if (SelectionTarget == null)
@@ -48,7 +48,7 @@ public class Player : Character
                 // }
             }
             base.Select();
-            Debug.Log("Same Player = " + (ActivePlayer == this));
+            CDebug.Log("Same Player = " + (ActivePlayer == this));
             if (ActivePlayer == this)
             {
                 SelectionTarget.gameObject.SetActive(true);
@@ -83,7 +83,7 @@ public class Player : Character
 
     public void ArrowMove(Vector2Int newPosition)
     {
-        Debug.Log("MOVING CHARACTER");
+        CDebug.Log("MOVING CHARACTER");
         Move(newPosition, 7f);
         arrows.Check(newPosition);
     }
@@ -97,7 +97,7 @@ public class Player : Character
     protected override void TurnEnd()
     {
         //throw new System.NotImplementedException();
-        Debug.Log("FINISHED PLAYER TURN");
+        CDebug.Log("FINISHED PLAYER TURN");
         ActivePlayersLeft.Remove(this);
         if (ActivePlayersLeft.Count > 0)
         {
@@ -213,23 +213,23 @@ public class Player : Character
                     }
                     //renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, Alpha);
                     NewTarget.TargetSelectEvent += () => {
-                        Debug.Log("CCC");
+                        CDebug.Log("CCC");
                         if (TileManager.HasGameTile(Coordinates.x,Coordinates.y))
                         {
-                            Debug.Log("BBB");
+                            CDebug.Log("BBB");
                             var GameTile = TileManager.GetGameTile(Coordinates.x, Coordinates.y);
                             if (GameTile is Trail trail)
                             {
                                 if (trail.Host is Enemy)
                                 {
-                                    Debug.Log("Found ENEMY");
+                                    CDebug.Log("Found ENEMY");
                                     FoundEnemy = trail.Host;
                                     FoundTile = trail;
                                 }
                             }
                             else if (GameTile is Enemy enemy)
                             {
-                                Debug.Log("Found ENEMY 2");
+                                CDebug.Log("Found ENEMY 2");
                                 FoundEnemy = enemy;
                                 FoundTile = enemy;
                             }

@@ -146,23 +146,23 @@ public class Enemy : Character
                     var Coordinates = new Vector2Int(x, y);
 
                     NewTarget.TargetSelectEvent += () => {
-                        Debug.Log("CCC");
+                        CDebug.Log("CCC");
                         if (TileManager.HasGameTile(Coordinates.x, Coordinates.y))
                         {
-                            Debug.Log("BBB");
+                            CDebug.Log("BBB");
                             var GameTile = TileManager.GetGameTile(Coordinates.x, Coordinates.y);
                             if (GameTile is Trail trail)
                             {
                                 if (trail.Host is Enemy)
                                 {
-                                    Debug.Log("Found ENEMY");
+                                    CDebug.Log("Found ENEMY");
                                     FoundEnemy = trail.Host;
                                     FoundTile = trail;
                                 }
                             }
                             else if (GameTile is Enemy enemy)
                             {
-                                //Debug.Log("Found ENEMY 2");
+                                //CDebug.Log("Found ENEMY 2");
                                 FoundEnemy = enemy;
                                 FoundTile = enemy;
                             }
@@ -286,7 +286,7 @@ public class Enemy : Character
         {
             await AttackPlayer.Damage(AttackDamage);
         }
-        Debug.Log("FINISHING ENEMY TURN");
+        CDebug.Log("FINISHING ENEMY TURN");
         FinishTurn();
     }
 

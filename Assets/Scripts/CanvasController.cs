@@ -38,11 +38,11 @@ public class CanvasController : MonoBehaviour {
         //var ToObject = GameObject.Find(To);
         /*if (FromObject == null)
         {
-            Debug.Log("Cant find from object of : " + From);
+            CDebug.Log("Cant find from object of : " + From);
         }
         if (ToObject == null)
         {
-            Debug.Log("Cant find to object of : " + To);
+            CDebug.Log("Cant find to object of : " + To);
         }*/
         //Temporary
         From.gameObject.SetActive(false);

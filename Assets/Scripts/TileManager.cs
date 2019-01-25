@@ -44,7 +44,7 @@ public class TileManager : MonoBehaviour
         {
             return null;
         }
-        Debug.Log($"Value at {x}, {y} = {GameMap[x, y]}");
+        CDebug.Log($"Value at {x}, {y} = {GameMap[x, y]}");
         return GameMap[x, y];
     }
 
@@ -76,7 +76,7 @@ public class TileManager : MonoBehaviour
     }
             }
         }
-        Debug.Log(final);
+        CDebug.Log(final);
     }*/
 
     public static bool WithinBounds(int x,int y)
@@ -96,13 +96,13 @@ public class TileManager : MonoBehaviour
             if (tile.GetComponent<Character>() != null)
             {
                 var Component = tile.GetComponent<Character>();
-                Debug.Log($"Type = {Component.GetType()}");
+                CDebug.Log($"Type = {Component.GetType()}");
                 CharacterList.Add(Component.GetType(), Component);
             }
             else
             {
                 var Component = tile.GetComponent<Tile>();
-                Debug.Log($"Type2 = {Component.GetType()}");
+                CDebug.Log($"Type2 = {Component.GetType()}");
                 TileList.Add(Component.GetType(), Component);
             }
         }
@@ -126,7 +126,7 @@ public class TileManager : MonoBehaviour
         Width = json["width"].ToObject<int>();
         Height = json["height"].ToObject<int>();
         var Data = json["layers"][0]["data"].ToObject<int[]>();
-        Debug.Log($"Data = {Data}");
+        CDebug.Log($"Data = {Data}");
         TileMap = new Tile[Width, Height];
         GameMap = new Component[Width, Height];
         for (int x = 0; x < Width; x++)

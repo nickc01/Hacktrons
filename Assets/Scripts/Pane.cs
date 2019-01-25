@@ -15,10 +15,10 @@ public class Pane : MonoBehaviour
         var Panes = Resources.FindObjectsOfTypeAll<Pane>();
         foreach (var pane in Panes)
         {
-            Debug.Log("Pane = " + pane);
+            CDebug.Log("Pane = " + pane);
             PaneMap.Add(pane.name, pane);
         }
-       // Debug.Log("Panes = " + Panes);
+       // CDebug.Log("Panes = " + Panes);
     }
     public static Pane GetPane(string Name)
     {

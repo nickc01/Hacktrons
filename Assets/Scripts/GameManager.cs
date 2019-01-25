@@ -12,10 +12,10 @@ public static class GameManager
 
     public static async void StartGame()
     {
-        //Debug.Log("Game Started = " + GameStarted);
+        //CDebug.Log("Game Started = " + GameStarted);
         if (!GameStarted)
         {
-           // Debug.Log("Starting Game");
+           // CDebug.Log("Starting Game");
             Pane.GetPane("Pre Game").gameObject.SetActive(false);
             Pane.GetPane("Game").gameObject.SetActive(true);
             GameStarted = true;
@@ -26,15 +26,15 @@ public static class GameManager
                 await Player.BeginTurns();
                 if (Enemy.Enemies.Count == 0)
                 {
-                    Debug.Log("YOU WIN");
+                    CDebug.Log("YOU WIN");
                     Win();
                     break;
                 }
-                //Debug.Log("BEGINNING ENEMY TURNS");
+                //CDebug.Log("BEGINNING ENEMY TURNS");
                 await Enemy.BeginTurns();
                 if (Player.Players.Count == 0)
                 {
-                    Debug.Log("YOU LOSE");
+                    CDebug.Log("YOU LOSE");
                     Lose();
                     break;
                 }
