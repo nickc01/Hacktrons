@@ -74,8 +74,8 @@ MonoBehaviour:
     m_Settings:
       focusDistance: 35
       aperture: 0.1
-      focalLength: 35
-      useCameraFov: 1
+      focalLength: 300
+      useCameraFov: 0
       kernelSize: 3
   motionBlur:
     m_Enabled: 0
@@ -315,10 +315,10 @@ MonoBehaviour:
     m_Settings:
       colored: 1
       intensity: 1
-      size: 1
-      luminanceContribution: 0.8
+      size: 0.3
+      luminanceContribution: 1
   vignette:
-    m_Enabled: 1
+    m_Enabled: 0
     m_Settings:
       mode: 0
       color: {r: 0, g: 0, b: 0, a: 1}

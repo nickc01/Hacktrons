@@ -20,16 +20,11 @@ namespace Game
 
         public static void StartGameButton()
         {
-            //sCDebug.Log("Start Game Button");
-           // CDebug.Log("Players = " + Player.Players.Count);
+            //GameObject.FindGameObjectWithTag("Canvas").SetActive(false);
+            //ScreenCapture.CaptureScreenshot("LevelScreenShot",2);
             if (Player.Players.Count > 0)
             {
                 GameManager.StartGame();
-                //Pane.GetPane("Pre Game").gameObject.SetActive(false);
-                /*foreach (var tile in SpawnTile.SpawnTiles)
-                {
-                    GameObject.Destroy(tile.gameObject);
-                }*/
             }
         }
         //Called when the player wishes to attack
