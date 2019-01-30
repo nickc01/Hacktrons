@@ -66,8 +66,12 @@ public class Pane : MonoBehaviour
         await camera;
     }
 
-    public async Task Move(Fade fade, Direction direction,float Speed = 1f,float Distance = 25f, Func<float,float,float,float> lerpFunc = null,bool Interrupt = false)
+    public async Task Move(Fade fade, Direction direction,float Speed = 1f,float? Distance = null, Func<float,float,float,float> lerpFunc = null,bool Interrupt = false)
     {
+        if (Distance == null)
+        {
+            Distance = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>().planeDistance;
+        }
         if (Moving)
         {
             if (Interrupt)
@@ -85,12 +89,12 @@ public class Pane : MonoBehaviour
         var buttons = GetComponentsInChildren<Button>();
         var canvas = GetComponentInParent<Canvas>();
         var ScreenFactor = canvas.worldCamera.ScreenToWorldPoint(Vector3.one) - canvas.worldCamera.ScreenToWorldPoint(Vector3.zero);
-        Debug.Log("Screen Factor = " + ScreenFactor);
+        //Debug.Log("Screen Factor = " + ScreenFactor);
         //Distance = ScreenFactor.z * Distance;
         //Distance = canvas.worldCamera.ScreenToWorldPoint(new Vector3(0, 0, -Distance)).z;
         Distance /= canvas.GetComponent<RectTransform>().localScale.z;
-        float MaxSize = 4f;
-        float MinSize = 0.25f;
+        //float MaxSize = 4f;
+        //float MinSize = 0.25f;
         var group = GetComponent<CanvasGroup>();
         var rect = GetComponent<RectTransform>();
         if (fade == Fade.Out)
@@ -113,12 +117,12 @@ public class Pane : MonoBehaviour
             {
                 //rect.localScale = new Vector3(MinSize, MinSize, 1f);
                 //transform.localPosition = Vector3.zero;
-                transform.localPosition = new Vector3(0, 0, Distance);
+                transform.localPosition = new Vector3(0, 0, Distance.Value);
             }
             else
             {
                 //rect.localScale = new Vector3(MaxSize, MaxSize, 1f);
-                transform.localPosition = new Vector3(0,0,-Distance);
+                transform.localPosition = new Vector3(0,0,-Distance.Value);
             }
             foreach (var button in buttons)
             {
@@ -143,12 +147,12 @@ public class Pane : MonoBehaviour
                 if (direction == Direction.Towards)
                 {
                     //rect.localScale = new Vector3(lerpFunc(1f, MaxSize, T), lerpFunc(1f, MaxSize, T), 1f);
-                    transform.localPosition = new Vector3(0,0,lerpFunc(0,-Distance,T));
+                    transform.localPosition = new Vector3(0,0,lerpFunc(0,-Distance.Value,T));
                 }
                 else
                 {
                     //rect.localScale = new Vector3(lerpFunc(1f, MinSize, T), lerpFunc(1f, MinSize, T), 1f);
-                    transform.localPosition = new Vector3(0, 0, lerpFunc(0, Distance, T));
+                    transform.localPosition = new Vector3(0, 0, lerpFunc(0, Distance.Value, T));
                 }
                 if (T == 1)
                 {
@@ -163,13 +167,13 @@ public class Pane : MonoBehaviour
                 if (direction == Direction.Towards)
                 {
                     //rect.localScale = new Vector3(lerpFunc(MinSize, 1f, T), lerpFunc(MinSize, 1f, T), 1f);
-                    transform.localPosition = new Vector3(0, 0, lerpFunc(Distance, 0, T));
+                    transform.localPosition = new Vector3(0, 0, lerpFunc(Distance.Value, 0, T));
                 }
                 else
                 {
                     //Debug.Log("Away");
                     //rect.localScale = new Vector3(lerpFunc(MaxSize, 1f, T), lerpFunc(MaxSize, 1f, T), 1f);
-                    transform.localPosition = new Vector3(0, 0, lerpFunc(-Distance, 0, T));
+                    transform.localPosition = new Vector3(0, 0, lerpFunc(-Distance.Value, 0, T));
                 }
                 if (T == 1)
                 {

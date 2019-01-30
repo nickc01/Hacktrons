@@ -13,7 +13,7 @@ public abstract class Character : MonoBehaviour, IHasID
     public static bool ReselectionEnabled { get; protected set; } = true;
     public virtual void OnSpawn()
     {
-        TileManager.GameMap[(int)transform.position.x, (int)transform.position.y] = this;
+        Game.GameMap[(int)transform.position.x, (int)transform.position.y] = this;
     }
     public virtual void OnGameStart()
     {
@@ -25,7 +25,7 @@ public abstract class Character : MonoBehaviour, IHasID
         {
             RemoveLastTrail();
         }*/
-        TileManager.GameMap[(int)transform.position.x, (int)transform.position.y] = null;
+        Game.GameMap[(int)transform.position.x, (int)transform.position.y] = null;
     }
 
     protected abstract void TurnStart();
@@ -92,7 +92,7 @@ public abstract class Character : MonoBehaviour, IHasID
 
     void OnMouseDown()
     {
-        if (GameManager.GameStarted)
+        if (Game.GameStarted)
         {
             if (ReselectionEnabled)
             {
@@ -101,7 +101,7 @@ public abstract class Character : MonoBehaviour, IHasID
         }
         else
         {
-            (TileManager.GetTile((int)transform.position.x, (int)transform.position.y) as SpawnTile)?.OnMouseDown();
+            (Game.GetTile((int)transform.position.x, (int)transform.position.y) as SpawnTile)?.OnMouseDown();
         }
     }
 
@@ -148,12 +148,21 @@ public abstract class Character : MonoBehaviour, IHasID
                 Done = true;
             }
         };
-        TileManager.GameMap[(int)From.x, (int)From.y] = null;
-        TileManager.GameMap[(int)To.x, (int)To.y] = this;
+        Game.GameMap[(int)From.x, (int)From.y] = null;
+        Game.GameMap[(int)To.x, (int)To.y] = this;
         MovesDone++;
         if (spawnTrail)
         {
-            SpawnTrail();
+            Debug.Log("Spawning Trail");
+            try
+            {
+                SpawnTrail();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
+            
         }
         Moving = true;
         StaticUpdate.Updates += Update;
@@ -176,7 +185,7 @@ public abstract class Character : MonoBehaviour, IHasID
             }
             else
             {
-                TileManager.DestroyCharacter(this);
+                Game.DestroyCharacter(this);
             }
         }
     }
@@ -188,11 +197,13 @@ public abstract class Character : MonoBehaviour, IHasID
 
     protected Trail SpawnTrail(bool ToEnd = false)
     {
-        var NewTrail = GameObject.Instantiate(TileManager.Trail.gameObject).GetComponent<Trail>();
+        Debug.Log("A");
+        var NewTrail = GameObject.Instantiate(Game.Trail.gameObject).GetComponent<Trail>();
+        Debug.Log("B");
         NewTrail.transform.position = transform.position; //new Vector3(transform.position.x,transform.position.y,transform.position.z - 2);
         NewTrail.GetComponent<SpriteRenderer>().color = CharacterColor;
         NewTrail.Host = this;
-        TileManager.GameMap[(int)transform.position.x, (int)transform.position.y] = NewTrail;
+        Game.GameMap[(int)transform.position.x, (int)transform.position.y] = NewTrail;
         trails.Insert(0, NewTrail);
         if (Trails.Count > MaxTrailLength)
         {
@@ -208,7 +219,7 @@ public abstract class Character : MonoBehaviour, IHasID
     {
         var LastTrail = trails[trails.Count - 1];
         trails.Remove(LastTrail);
-        TileManager.GameMap[(int)LastTrail.transform.position.x, (int)LastTrail.transform.position.y] = null;
+        Game.GameMap[(int)LastTrail.transform.position.x, (int)LastTrail.transform.position.y] = null;
         GameObject.Destroy(LastTrail.gameObject);
     }
 
@@ -216,7 +227,7 @@ public abstract class Character : MonoBehaviour, IHasID
     {
         foreach (var trail in trails)
         {
-            TileManager.GameMap[(int)trail.transform.position.x, (int)trail.transform.position.y] = null;
+            Game.GameMap[(int)trail.transform.position.x, (int)trail.transform.position.y] = null;
             GameObject.Destroy(trail.gameObject);
         }
         trails.Clear();
@@ -224,7 +235,7 @@ public abstract class Character : MonoBehaviour, IHasID
 
     public static T Spawn<T>(Vector2Int Position) where T : Character
     {
-        return TileManager.SpawnCharacter<T>(Position);
+        return Game.SpawnCharacter<T>(Position);
     }
 
     public abstract int GetTileID();

@@ -68,18 +68,18 @@ public abstract class Enemy : Character
             return (null, null);
         }
         List<Target> Targets = new List<Target>();
-        var EnemyTargetPrefab = TileManager.EnemyTarget.GetComponent<Target>();
+        var EnemyTargetPrefab = Game.EnemyTarget.GetComponent<Target>();
 
-        for (int x = 0; x < TileManager.Width; x++)
+        for (int x = 0; x < Game.Width; x++)
         {
-            for (int y = 0; y < TileManager.Height; y++)
+            for (int y = 0; y < Game.Height; y++)
             {
-                if (Vector2.Distance(new Vector2(x, y), transform.position) <= AttackRange && TileManager.GetGameTile(x, y) != this)
+                if (Vector2.Distance(new Vector2(x, y), transform.position) <= AttackRange && Game.GetGameTile(x, y) != this)
                 {
                     var NewTarget = GameObject.Instantiate(EnemyTargetPrefab.gameObject).GetComponent<Target>();
                     NewTarget.transform.position = new Vector3(x, y, transform.position.z - 0.3f);
                     Targets.Add(NewTarget);
-                    var GameTile = TileManager.GameMap[x, y];
+                    var GameTile = Game.GameMap[x, y];
                     if (GameTile != null)
                     {
                         if (GameTile is Trail trail && trail.Host is Player)
@@ -243,7 +243,7 @@ public abstract class Enemy : Character
                 Distance = newDistance;
                 nextPosition = newPosition;
             }
-            if (TileManager.WithinBounds(nextPosition.x,nextPosition.y) && TileManager.GetTile(nextPosition.x,nextPosition.y) != null && TileManager.HasGameTile(nextPosition.x, nextPosition.y) == false)
+            if (Game.WithinBounds(nextPosition.x,nextPosition.y) && Game.GetTile(nextPosition.x,nextPosition.y) != null && Game.HasGameTile(nextPosition.x, nextPosition.y) == false)
             {
                 return nextPosition;
             }

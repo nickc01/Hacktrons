@@ -23,7 +23,7 @@ public static class CharacterSelector
         Selecting = true;
         Waiting = true;
         //TEMPORARY
-        var player = TileManager.SpawnCharacter<Knife>(SpawnPosition);
+        var player = Game.SpawnCharacter<Knife>(SpawnPosition);
         /*var player = GameObject.Instantiate(TileManager.Tiles[3]).GetComponent<Player>();
         player.OnSpawn();*/
 
@@ -34,6 +34,6 @@ public static class CharacterSelector
     }
     public static void UndoSelection(Player player)
     {
-        TileManager.DestroyCharacter(player);
+        Game.DestroyCharacter(player);
     }
 }

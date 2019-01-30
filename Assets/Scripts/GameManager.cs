@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public static class GameManager
+public partial class Game : MonoBehaviour
 {
     public static event Action GameStartEvent;
     public static bool GameStarted { get; private set; } = false;
@@ -52,7 +52,7 @@ public static class GameManager
     public static void ResetToSelectionScreen()
     {
         CameraTarget.Active = true;
-        TileManager.DeleteMap();
+        Game.DeleteMap();
         Pane.GetPane("Results Screen").gameObject.SetActive(false);
         Pane.GetPane("Select Level").gameObject.SetActive(true);
     }

@@ -26,7 +26,7 @@ using UnityEngine;
             //ScreenCapture.CaptureScreenshot("LevelScreenShot",2);
             if (Player.Players.Count > 0)
             {
-                GameManager.StartGame();
+                Game.StartGame();
             }
         }
         //Called when the player wishes to attack
@@ -55,7 +55,7 @@ using UnityEngine;
 
         public static void BackButton()
         {
-            GameManager.ResetToSelectionScreen();
+            Game.ResetToSelectionScreen();
         }
 
         public static void QuitButton()

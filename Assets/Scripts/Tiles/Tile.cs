@@ -12,6 +12,6 @@ public abstract class Tile : MonoBehaviour, IHasID
 
     public static T Spawn<T>(Vector2Int Position) where T : Tile
     {
-        return TileManager.SpawnTile<T>(Position);
+        return Game.SpawnTile<T>(Position);
     }
 }

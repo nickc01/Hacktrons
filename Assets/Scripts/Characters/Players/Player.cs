@@ -160,19 +160,19 @@ public abstract class Player : Character
 
         List<Target> Targets = new List<Target>();
 
-        var PlayerTargetPrefab = TileManager.PlayerTarget.GetComponent<Target>();
+        var PlayerTargetPrefab = Game.PlayerTarget.GetComponent<Target>();
         
-        for (int x = 0; x < TileManager.Width; x++)
+        for (int x = 0; x < Game.Width; x++)
         {
-            for (int y = 0; y < TileManager.Height; y++)
+            for (int y = 0; y < Game.Height; y++)
             {
-                if (Vector2.Distance(new Vector2(x,y),transform.position) <= AttackRange && TileManager.GetGameTile(x,y) != this)
+                if (Vector2.Distance(new Vector2(x,y),transform.position) <= AttackRange && Game.GetGameTile(x,y) != this)
                 {
                     var NewTarget = GameObject.Instantiate(PlayerTargetPrefab.gameObject).GetComponent<Target>();
                     NewTarget.transform.position = new Vector3(x, y,transform.position.z - 0.3f);
                     Targets.Add(NewTarget);
                     var Coordinates = new Vector2Int(x, y);
-                    var gameTile = TileManager.GameMap[x, y];
+                    var gameTile = Game.GameMap[x, y];
                     var renderer = NewTarget.GetComponent<SpriteRenderer>();
                     var Alpha = 0.3f;
                     if (gameTile == null)
@@ -214,10 +214,10 @@ public abstract class Player : Character
                     //renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, Alpha);
                     NewTarget.TargetSelectEvent += () => {
                         CDebug.Log("CCC");
-                        if (TileManager.HasGameTile(Coordinates.x,Coordinates.y))
+                        if (Game.HasGameTile(Coordinates.x,Coordinates.y))
                         {
                             CDebug.Log("BBB");
-                            var GameTile = TileManager.GetGameTile(Coordinates.x, Coordinates.y);
+                            var GameTile = Game.GetGameTile(Coordinates.x, Coordinates.y);
                             if (GameTile is Trail trail)
                             {
                                 if (trail.Host is Enemy)

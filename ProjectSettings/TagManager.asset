@@ -8,6 +8,7 @@ TagManager:
   - SelectionTarget
   - Arrow
   - Canvas
+  - BackgroundCamera
   layers:
   - Default
   - TransparentFX

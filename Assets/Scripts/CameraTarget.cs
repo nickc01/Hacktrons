@@ -67,14 +67,22 @@ public class CameraTarget : MonoBehaviour
         }
     }
 
-    public static async Task MoveForward(float Distance = 25f, float Speed = 1f,bool Instant = true)
+    public static async Task MoveForward(float? Distance = null, float Speed = 1f,bool Instant = true)
     {
-        await Move(Position, Position + Vector3.forward * Distance,Instant: Instant);
+        if (Distance == null)
+        {
+            Distance = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>().planeDistance;
+        }
+        await Move(Position, Position + Vector3.forward * Distance.Value,Instant: Instant);
     }
 
-    public static async Task MoveBackward(float Distance = 25f, float Speed = 1f,bool Instant = true)
+    public static async Task MoveBackward(float? Distance = null, float Speed = 1f,bool Instant = true)
     {
-        await Move(Position, Position + Vector3.back * Distance,Instant: Instant);
+        if (Distance == null)
+        {
+            Distance = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>().planeDistance;
+        }
+        await Move(Position, Position + Vector3.back * Distance.Value,Instant: Instant);
     }
 
 

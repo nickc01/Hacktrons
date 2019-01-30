@@ -16,7 +16,7 @@ public class SpawnTile : Tile
         SpawnTiles.Add(this);
         CDebug.Log(SpawnTiles.Count);
         gameObject.AddComponent<BoxCollider2D>().isTrigger = true;
-        GameManager.GameStartEvent += OnGameStart;
+        Game.GameStartEvent += OnGameStart;
     }
 
     public override int GetTileID() => 1;
@@ -29,13 +29,13 @@ public class SpawnTile : Tile
         CDebug.Log("Transform = " + transform);
         CDebug.Log("Position = " + transform.position);
         Vector2 Position = transform.position;
-        TileManager.DestroyTile(new Vector2Int((int)Position.x,(int)Position.y));
-        TileManager.SpawnTile<BasicTile>(new Vector2Int((int)Position.x,(int)Position.y));
+        Game.DestroyTile(new Vector2Int((int)Position.x,(int)Position.y));
+        Game.SpawnTile<BasicTile>(new Vector2Int((int)Position.x,(int)Position.y));
     }
 
     public override void OnDestruction()
     {
-        GameManager.GameStartEvent -= OnGameStart;
+        Game.GameStartEvent -= OnGameStart;
         SpawnTiles.Remove(this);
         base.OnDestruction();
     }

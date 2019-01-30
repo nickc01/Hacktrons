@@ -82,9 +82,9 @@ public struct Arrows
     }
     private bool CheckArrow(int x, int y)
     {
-        if (TileManager.WithinBounds(x,y) && TileManager.GetTile(x,y) != null)
+        if (Game.WithinBounds(x,y) && Game.GetTile(x,y) != null)
         {
-            var gameTile = TileManager.GetGameTile(x, y);
+            var gameTile = Game.GetGameTile(x, y);
             if (gameTile == null)
             {
                 CDebug.Log("NULL");

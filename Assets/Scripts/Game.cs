@@ -9,21 +9,13 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
 using System.Linq;
+using System.Threading.Tasks;
 
-public class TileManager : MonoBehaviour
+public partial class Game : MonoBehaviour
 {
     private static Dictionary<int, IHasID> TileMap = new Dictionary<int, IHasID>();
     private static Dictionary<int, TextAsset> Levels = new Dictionary<int, TextAsset>();
-    private static TileManager manager;
-
-    /*[SerializeField]
-    private GameObject TrailPrefab;
-
-    [SerializeField]
-    public GameObject playerTarget;
-
-    [SerializeField]
-    public GameObject enemyTarget;*/
+    private static Game manager;
     private static Target playerTarget;
     private static Target enemyTarget;
     private static Trail trailPrefab;
@@ -70,10 +62,26 @@ public class TileManager : MonoBehaviour
     //public static ReadOnlyCollection<GameObject> Tiles => manager.TilePrefabs.AsReadOnly();
     //public static ReadOnlyCollection<GameObject> Tiles => 
 
+    private static T GetPrefab<T>(string prefabName) where T : UnityEngine.Object
+    {
+        return (Resources.Load(prefabName) as GameObject).GetComponent<T>();
+    }
+
 
     void Start()
     {
         manager = this;
+        /*playerTarget = GetPrefab<GameObject>("Player Target.prefab");
+        
+        enemyTarget = GetPrefab<GameObject>("Enemy Target.prefab");
+        trailPrefab = Resources.Load<GameObject>("Characters/Other/Trail.prefab");*/
+        //trailPrefab = (Resources.Load("Characters/Other/Trail") as GameObject).GetComponent<Trail>();
+        trailPrefab = GetPrefab<Trail>("Characters/Other/Trail");
+        playerTarget = GetPrefab<Target>("Prefabs/Player Target");
+        enemyTarget = GetPrefab<Target>("Prefabs/Enemy Target");
+        Debug.Log("Player Target " + playerTarget == null);
+        Debug.Log("Enemy Target " + enemyTarget == null);
+        Debug.Log("Trail " + trailPrefab == null);
         var prefabs = Resources.LoadAll<GameObject>("");
         foreach (var prefab in prefabs)
         {
@@ -113,13 +121,19 @@ public class TileManager : MonoBehaviour
         }*/
     }
 
-    public static void LoadLevel(int levelNumber)
+    public static async Task LoadLevel(int levelNumber)
     {
         SetMap(levelNumber);
-        Pane.GetPane("Select Level").gameObject.SetActive(false);
+        Task away = Pane.GetPane("Select Level").Move(Pane.Fade.Out, Pane.Direction.Away,3f);
+        Task to = Pane.GetPane("Pre Game").Move(Pane.Fade.In,Pane.Direction.Towards,1f/3f,100f);
+        Task camera = CameraTarget.MoveForward(100f,1f/3f);
+        await away;
+        await to;
+        await camera;
+        /*Pane.GetPane("Select Level").gameObject.SetActive(false);
         CameraTarget.Active = true;
         CameraTarget.Movable = true;
-        CameraTarget.WarpCamera(new Vector3((Width - 1) / 2f,(Height - 1) / 2f));
+        CameraTarget.WarpCamera(new Vector3((Width - 1) / 2f,(Height - 1) / 2f));*/
     }
 
     private static void SetMap(int levelNumber)
@@ -206,7 +220,7 @@ public class TileManager : MonoBehaviour
         if (FormatterServices.GetUninitializedObject(T) is IHasID id && TileMap[id.GetTileID()] is Character Prefab)
         {
             var character = GameObject.Instantiate(Prefab.gameObject).GetComponent<Character>();
-            character.transform.position = new Vector3(position.x, position.y, Prefab.transform.position.z);
+            character.transform.position = new Vector3(position.x, position.y, -130f);
             character.transform.SetParent(manager.transform);
             character.GetComponent<SpriteRenderer>().sortingLayerName = "Characters";
             character.OnSpawn();
@@ -245,7 +259,7 @@ public class TileManager : MonoBehaviour
         if (FormatterServices.GetUninitializedObject(T) is IHasID id && TileMap[id.GetTileID()] is Tile Prefab)
         {
             var tile = GameObject.Instantiate(Prefab.gameObject).GetComponent<Tile>();
-            tile.transform.position = new Vector3(position.x, position.y);
+            tile.transform.position = new Vector3(position.x, position.y,-130f);
             TileBoard[position.x, position.y] = tile;
             tile.transform.SetParent(manager.transform);
             tile.OnSpawn();
