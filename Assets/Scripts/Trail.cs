@@ -12,7 +12,7 @@ public class Trail : MonoBehaviour
     float MinAlpha = 128;
     float T = 0;
     bool Direction = true;
-    SpriteRenderer renderer;
+    new SpriteRenderer renderer;
     private bool flash = false;
     float Speed = 3f;
     public bool Flash

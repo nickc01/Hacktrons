@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 public class Droid : Enemy
 {
-
+    public override int GetTileID() => 4;
 }

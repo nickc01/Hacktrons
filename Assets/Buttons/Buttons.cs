@@ -5,17 +5,19 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Game
-{
+//namespace Game
+//{
     public static class Buttons
     {
         public static async void PlayButton()
         {
-            await CanvasController.MovePanes("Main Menu", "Select Level");
+            //await CanvasController.MovePanes("Main Menu", "Select Level");
+            await Pane.SwitchTo("Main Menu", "Select Level");
         }
         public static async void BackMainMenuButton()
         {
-            await CanvasController.MovePanes("Select Level", "Main Menu");
+            //await CanvasController.MovePanes("Select Level", "Main Menu");
+            await Pane.SwitchBackTo("Select Level", "Main Menu");
         }
 
         public static void StartGameButton()
@@ -61,4 +63,4 @@ namespace Game
             Application.Quit();
         }
     }
-}
+//}

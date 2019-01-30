@@ -19,6 +19,8 @@ public class SpawnTile : Tile
         GameManager.GameStartEvent += OnGameStart;
     }
 
+    public override int GetTileID() => 1;
+
     void OnGameStart()
     {
         CDebug.Log("SPAWNTILES = " + SpawnTiles.Count);

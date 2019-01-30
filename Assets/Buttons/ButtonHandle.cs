@@ -16,7 +16,7 @@ public class ButtonHandle : MonoBehaviour
     Action voidFunc;
     void Start()
     {
-        var methods = typeof(Game.Buttons).GetMethods();
+        var methods = typeof(Buttons).GetMethods();
         /* foreach (var md in methods)
          {
              if ((md.Name == gameObject.name + " Button" || md.Name == gameObject.name + "Button" || md.Name == gameObject.name) && md.IsStatic && md.ReturnType == typeof(void))
@@ -34,7 +34,14 @@ public class ButtonHandle : MonoBehaviour
         if (selection != null)
         {
             GetComponent<Button>().onClick.AddListener(() => {
-                selection.Invoke(null, null);
+               // try
+               // {
+                    selection.Invoke(null, null);
+               // }
+               // catch (Exception e)
+               // {
+               //     Debug.LogError(e);
+               // }
             });
         }
 #if DebugButtons

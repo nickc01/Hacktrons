@@ -6,36 +6,38 @@ using Newtonsoft.Json.Linq;
 using System.Collections.ObjectModel;
 using System;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Runtime.Serialization;
+using System.Linq;
 
 public class TileManager : MonoBehaviour
 {
-    [SerializeField]
-    private List<GameObject> TilePrefabs;
-    [SerializeField]
-    private List<TextAsset> LevelFiles;
-    //private static Dictionary<Type, object> TileTypes = new Dictionary<Type, object>();
-    private static Dictionary<Type, Character> CharacterList = new Dictionary<Type, Character>();
-    private static Dictionary<Type, Tile> TileList = new Dictionary<Type, Tile>();
+    private static Dictionary<int, IHasID> TileMap = new Dictionary<int, IHasID>();
+    private static Dictionary<int, TextAsset> Levels = new Dictionary<int, TextAsset>();
     private static TileManager manager;
 
-    [SerializeField]
+    /*[SerializeField]
     private GameObject TrailPrefab;
 
     [SerializeField]
     public GameObject playerTarget;
 
     [SerializeField]
-    public GameObject enemyTarget;
+    public GameObject enemyTarget;*/
+    private static Target playerTarget;
+    private static Target enemyTarget;
+    private static Trail trailPrefab;
 
-    public static GameObject EnemyTarget => manager.enemyTarget;
-    public static GameObject PlayerTarget => manager.playerTarget;
 
-    public static Trail Trail => manager.TrailPrefab.GetComponent<Trail>();
+    public static Target EnemyTarget => enemyTarget;
+    public static Target PlayerTarget => playerTarget;
+
+    public static Trail Trail => trailPrefab;
 
     static bool MapSet = false;
     public static int Width { get; private set; } = 0;
     public static int Height { get; private set; } = 0;
-    static Tile[,] TileMap;
+    static Tile[,] TileBoard;
     public static Component[,] GameMap;
 
     public static Component GetGameTile(int x,int y)
@@ -44,7 +46,7 @@ public class TileManager : MonoBehaviour
         {
             return null;
         }
-        CDebug.Log($"Value at {x}, {y} = {GameMap[x, y]}");
+        //CDebug.Log($"Value at {x}, {y} = {GameMap[x, y]}");
         return GameMap[x, y];
     }
 
@@ -58,27 +60,6 @@ public class TileManager : MonoBehaviour
         return GameMap[x, y] != null;
     }
 
-    /*public static void Print()
-    {
-        string final = "";
-        for (int x = 0; x < Width; x++)
-        {
-            for (int y = 0; y < Height; y++)
-            {
-                var value = GameMap[x, y];
-                if (value == null)
-                {
-                    final += "null, ";
-                }
-                else
-                {
-                    final += (GameMap[x, y].ToString()).ToString() + ", ";
-    }
-            }
-        }
-        CDebug.Log(final);
-    }*/
-
     public static bool WithinBounds(int x,int y)
     {
         return !(x < 0 || y < 0 || x >= Width || y >= Height);
@@ -86,12 +67,36 @@ public class TileManager : MonoBehaviour
     
     static GameObject LevelArea;
 
-    public static ReadOnlyCollection<GameObject> Tiles => manager.TilePrefabs.AsReadOnly();
+    //public static ReadOnlyCollection<GameObject> Tiles => manager.TilePrefabs.AsReadOnly();
+    //public static ReadOnlyCollection<GameObject> Tiles => 
+
 
     void Start()
     {
         manager = this;
-        foreach (var tile in TilePrefabs)
+        var prefabs = Resources.LoadAll<GameObject>("");
+        foreach (var prefab in prefabs)
+        {
+            IHasID ID = prefab.GetComponent<IHasID>();
+            if (ID != null)
+            {
+                TileMap.Add(ID.GetTileID(), ID);
+            }
+        }
+        var levelAssets = Resources.LoadAll<TextAsset>("Levels");
+        foreach (var level in levelAssets)
+        {
+            var reg = Regex.Match(level.name, @"Level\s(\d+)");
+            /*Debug.Log("Groups = " + reg.Groups.Count);
+            Debug.Log("Captures = " + reg.Captures.Count);
+            Debug.Log("The Capture = " + reg.Groups[1]);*/
+            if (reg.Captures.Count > 0 && int.TryParse(reg.Groups[1].Value,out int result))
+            {
+                Debug.Log("Adding");
+                Levels.Add(result, level);
+            }
+        }
+        /*foreach (var tile in TilePrefabs)
         {
             if (tile.GetComponent<Character>() != null)
             {
@@ -105,43 +110,56 @@ public class TileManager : MonoBehaviour
                 CDebug.Log($"Type2 = {Component.GetType()}");
                 TileList.Add(Component.GetType(), Component);
             }
-        }
+        }*/
     }
 
     public static void LoadLevel(int levelNumber)
     {
-        SetMap(levelNumber - 1);
+        SetMap(levelNumber);
         Pane.GetPane("Select Level").gameObject.SetActive(false);
         CameraTarget.Active = true;
         CameraTarget.Movable = true;
         CameraTarget.WarpCamera(new Vector3((Width - 1) / 2f,(Height - 1) / 2f));
     }
 
-    private static void SetMap(int levelIndex)
+    private static void SetMap(int levelNumber)
     {
         DeleteMap();
-        TextAsset levelFile = manager.LevelFiles[levelIndex];
+        Debug.Log("Index = " + levelNumber);
+        foreach (var level in Levels)
+        {
+            Debug.Log(level.Key.ToString() + " = " + level.Value);
+        }
+        foreach (var id in TileMap)
+        {
+            Debug.Log(id.Value.GetType().ToString() + " = " + id.Key);
+        }
+        TextAsset levelFile = Levels[levelNumber];
         var json = JObject.Parse(levelFile.text);
         MapSet = true;
         Width = json["width"].ToObject<int>();
         Height = json["height"].ToObject<int>();
         var Data = json["layers"][0]["data"].ToObject<int[]>();
-        CDebug.Log($"Data = {Data}");
-        TileMap = new Tile[Width, Height];
+        //CDebug.Log($"Data = {Data}");
+        TileBoard = new Tile[Width, Height];
         GameMap = new Component[Width, Height];
         for (int x = 0; x < Width; x++)
         {
             for (int y = 0; y < Height; y++)
             {
-                var obj = IndexToObject(Data[x + (y * Width)] - 1);
-                if (obj is Character character)
+                var IDNum = Data[x + (y * Width)] - 1;
+                if (IDNum >= 0)
                 {
-                    SpawnCharacter(character.GetType(), new Vector2Int(x, Height - 1 - y));
-                    TileMap[x, Height - 1 - y] = SpawnTile<BasicTile>(new Vector2Int(x, Height - 1 - y));
-                }
-                else if (obj is Tile tile)
-                {
-                    TileMap[x,Height - 1 - y] = SpawnTile(tile.GetType(), new Vector2Int(x, Height - 1 - y));
+                    var obj = TileMap[IDNum];
+                    if (obj is Character character)
+                    {
+                        SpawnCharacter(character.GetType(), new Vector2Int(x, Height - 1 - y));
+                        TileBoard[x, Height - 1 - y] = SpawnTile<BasicTile>(new Vector2Int(x, Height - 1 - y));
+                    }
+                    else if (obj is Tile tile)
+                    {
+                        TileBoard[x, Height - 1 - y] = SpawnTile(tile.GetType(), new Vector2Int(x, Height - 1 - y));
+                    }
                 }
             }
         }
@@ -151,22 +169,6 @@ public class TileManager : MonoBehaviour
         if (MapSet)
         {
             MapSet = false;
-            /*foreach (var player in Player.Players)
-            {
-                TileManager.DestroyCharacter(player);
-            }
-            foreach (var enemy in Enemy.Enemies)
-            {
-                TileManager.DestroyCharacter(enemy);
-            }*/
-            /*for (int i = 0; i < Enemy.Enemies.Count; i++)
-            {
-                TileManager.DestroyCharacter(Enemy.Enemies[i]);
-            }
-            for (int i = 0; i < Player.Players.Count; i++)
-            {
-                TileManager.DestroyCharacter(Player.Players[i]);
-            }*/
             for (int i = Enemy.Enemies.Count - 1; i >= 0; i--)
             {
                 Enemy.Enemies[i].DeleteAllTrails();
@@ -177,7 +179,7 @@ public class TileManager : MonoBehaviour
                 Player.Players[i].DeleteAllTrails();
                 DestroyCharacter(Player.Players[i]);
             }
-            foreach (var tile in TileMap)
+            foreach (var tile in TileBoard)
             {
                 if (tile != null)
                 {
@@ -186,30 +188,13 @@ public class TileManager : MonoBehaviour
             }
             Width = 0;
             Height = 0;
-            TileMap = new Tile[0,0];
+            TileBoard = new Tile[0,0];
             GameMap = new Component[0,0];
         }
     }
     public static int GetLevelCount()
     {
-        return manager.LevelFiles.Count;
-    }
-    //Returns either a character or a tile based on the index
-    private static object IndexToObject(int index)
-    {
-        if (index < 0 || index >= manager.TilePrefabs.Count)
-        {
-            return null;
-        }
-        var Object = manager.TilePrefabs[index];
-        if (Object.GetComponent<Character>() != null)
-        {
-            return Object.GetComponent<Character>();
-        }
-        else
-        {
-            return Object.GetComponent<Tile>();
-        }
+        return Levels.Count;
     }
 
     public static T SpawnCharacter<T>(Vector2Int position) where T : Character
@@ -218,13 +203,19 @@ public class TileManager : MonoBehaviour
     }
     public static Character SpawnCharacter(Type T, Vector2Int position)
     {
-        var Prefab = CharacterList[T] as Character;
-        var character = GameObject.Instantiate(Prefab.gameObject).GetComponent<Character>();
-        character.transform.position = new Vector3(position.x,position.y,Prefab.transform.position.z);
-        character.transform.SetParent(manager.transform);
-        character.GetComponent<SpriteRenderer>().sortingLayerName = "Characters";
-        character.OnSpawn();
-        return character;
+        if (FormatterServices.GetUninitializedObject(T) is IHasID id && TileMap[id.GetTileID()] is Character Prefab)
+        {
+            var character = GameObject.Instantiate(Prefab.gameObject).GetComponent<Character>();
+            character.transform.position = new Vector3(position.x, position.y, Prefab.transform.position.z);
+            character.transform.SetParent(manager.transform);
+            character.GetComponent<SpriteRenderer>().sortingLayerName = "Characters";
+            character.OnSpawn();
+            return character;
+        }
+        else
+        {
+            throw new Exception(T.ToString() + " is not a character");
+        }
     }
     public static T SpawnTile<T>(Vector2Int position) where T : Tile
     {
@@ -232,12 +223,12 @@ public class TileManager : MonoBehaviour
     }
     public static void DestroyTile(Vector2Int position)
     {
-        if (!(position.x < 0 || position.y < 0 || position.x >= Width || position.y >= Height) && TileMap[position.x,position.y] != null)
+        if (!(position.x < 0 || position.y < 0 || position.x >= Width || position.y >= Height) && TileBoard[position.x,position.y] != null)
         {
-            var Tile = TileMap[position.x,position.y];
+            var Tile = TileBoard[position.x,position.y];
             Tile.OnDestruction();
             GameObject.Destroy(Tile.gameObject);
-            TileMap[position.x, position.y] = null;
+            TileBoard[position.x, position.y] = null;
         }
     }
     public static void DestroyCharacter(Character character)
@@ -251,13 +242,19 @@ public class TileManager : MonoBehaviour
         {
             throw new Exception("The Position is not within the map boundaries");
         }
-        var Prefab = TileList[T] as Tile;
-        var tile = GameObject.Instantiate(Prefab.gameObject).GetComponent<Tile>();
-        tile.transform.position = new Vector3(position.x, position.y);
-        TileMap[position.x, position.y] = tile;
-        tile.transform.SetParent(manager.transform);
-        tile.OnSpawn();
-        return tile;
+        if (FormatterServices.GetUninitializedObject(T) is IHasID id && TileMap[id.GetTileID()] is Tile Prefab)
+        {
+            var tile = GameObject.Instantiate(Prefab.gameObject).GetComponent<Tile>();
+            tile.transform.position = new Vector3(position.x, position.y);
+            TileBoard[position.x, position.y] = tile;
+            tile.transform.SetParent(manager.transform);
+            tile.OnSpawn();
+            return tile;
+        }
+        else
+        {
+            throw new Exception(T.ToString() + " Is not a tile");
+        }
     }
 
     public static Tile GetTile(int x,int y)
@@ -266,7 +263,7 @@ public class TileManager : MonoBehaviour
         {
             return null;
         }
-        return TileMap[x, y];
+        return TileBoard[x, y];
     }
 
 

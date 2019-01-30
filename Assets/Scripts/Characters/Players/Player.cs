@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Player : Character
+public abstract class Player : Character
 {
     private static List<Player> players = new List<Player>();
     public static ReadOnlyCollection<Player> Players => players.AsReadOnly();

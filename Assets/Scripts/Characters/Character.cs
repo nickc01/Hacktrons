@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public abstract class Character : MonoBehaviour
+public abstract class Character : MonoBehaviour, IHasID
 {
 
     public static bool ReselectionEnabled { get; protected set; } = true;
@@ -193,14 +193,6 @@ public abstract class Character : MonoBehaviour
         NewTrail.GetComponent<SpriteRenderer>().color = CharacterColor;
         NewTrail.Host = this;
         TileManager.GameMap[(int)transform.position.x, (int)transform.position.y] = NewTrail;
-        /*if (ToEnd)
-        {
-            trails.Insert(trails.Count,NewTrail);
-        }
-        else
-        {
-            trails.Add(NewTrail);
-        }*/
         trails.Insert(0, NewTrail);
         if (Trails.Count > MaxTrailLength)
         {
@@ -229,4 +221,11 @@ public abstract class Character : MonoBehaviour
         }
         trails.Clear();
     }
+
+    public static T Spawn<T>(Vector2Int Position) where T : Character
+    {
+        return TileManager.SpawnCharacter<T>(Position);
+    }
+
+    public abstract int GetTileID();
 }

@@ -8,5 +8,5 @@ using UnityEngine.EventSystems;
 
 public class MoneyTile : Tile
 {
-
+    public override int GetTileID() => 2;
 }

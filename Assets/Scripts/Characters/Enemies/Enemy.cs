@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class Enemy : Character
+public abstract class Enemy : Character
 {
     private static List<Enemy> enemies = new List<Enemy>();
     public static ReadOnlyCollection<Enemy> Enemies => enemies.AsReadOnly();

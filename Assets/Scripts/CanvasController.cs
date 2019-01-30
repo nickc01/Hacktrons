@@ -47,6 +47,17 @@ public class CanvasController : MonoBehaviour {
         //Temporary
         From.gameObject.SetActive(false);
         To.gameObject.SetActive(true);
+        /*try
+        {
+            Task fadein = From.Move(true);
+            Task fadeOut = To.Move(false);
+            await fadein;
+            await fadeOut;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }*/
     }
 
 }

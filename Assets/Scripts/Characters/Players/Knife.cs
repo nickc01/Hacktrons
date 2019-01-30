@@ -7,5 +7,5 @@ using UnityEngine;
 
 public class Knife : Player
 {
-
+    public override int GetTileID() => 3;
 }

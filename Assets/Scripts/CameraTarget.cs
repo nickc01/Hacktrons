@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class CameraTarget : MonoBehaviour
@@ -15,7 +17,6 @@ public class CameraTarget : MonoBehaviour
     {
         maintarget = this;
         mainCameras = FindObjectsOfType<Camera>();
-        //CDebug.Log("Start Mover");
     }
 
     void Update()
@@ -49,7 +50,7 @@ public class CameraTarget : MonoBehaviour
         }
     }
 
-    public static bool Active { get; set; } = false;
+    public static bool Active { get; set; } = true;
     public static bool Movable { get; set; } = false;
     public static Vector3 Position
     {
@@ -64,5 +65,57 @@ public class CameraTarget : MonoBehaviour
         {
             mainCamera.transform.position = new Vector3(position.x, position.y, -10);
         }
+    }
+
+    public static async Task MoveForward(float Distance = 25f, float Speed = 1f,bool Instant = true)
+    {
+        await Move(Position, Position + Vector3.forward * Distance,Instant: Instant);
+    }
+
+    public static async Task MoveBackward(float Distance = 25f, float Speed = 1f,bool Instant = true)
+    {
+        await Move(Position, Position + Vector3.back * Distance,Instant: Instant);
+    }
+
+
+    public static async Task Move(Vector3 From, Vector3 To,float Speed = 1f,bool Instant = true, Func<float,float,float,float> lerpFunc = null)
+    {
+        if (lerpFunc == null)
+        {
+            lerpFunc = LerpManager.SmoothLerp;
+        }
+
+        bool Done = false;
+        float T = 0;
+        float CamSpeed = maintarget.CameraSpeed;
+        if (Instant)
+        {
+            maintarget.CameraSpeed = 99999f;
+        }
+
+        Action func = () => {
+            if (Done)
+            {
+                return;
+            }
+            T += Time.deltaTime * Speed;
+            if (T > 1)
+            {
+                T = 1;
+            }
+            Position = new Vector3(lerpFunc(From.x,To.x,T),lerpFunc(From.y,To.y,T),lerpFunc(From.z,To.z,T));
+            if (T == 1)
+            {
+                Done = true;
+            }
+        };
+        StaticUpdate.Updates += func;
+        await Task.Run(() => { while (!Done) { } });
+        StaticUpdate.Updates -= func;
+        if (Instant)
+        {
+            maintarget.CameraSpeed = CamSpeed;
+        }
+        Done = false;
     }
 }
