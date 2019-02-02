@@ -4,6 +4,9 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using System.Collections.Concurrent;
+using System.Linq;
+using System;
 
 public abstract class Enemy : Character
 {
@@ -14,7 +17,7 @@ public abstract class Enemy : Character
 
     private static List<Enemy> ActiveEnemiesLeft = new List<Enemy>();
 
-    public static bool EnemyTurn { get; private set; } = false;
+    public static bool EnemyTurn { get; set; } = false;
 
     public override void OnDestruction()
     {
@@ -34,6 +37,15 @@ public abstract class Enemy : Character
         if (EnemyTurn)
         {
             base.Select();
+            CharacterStats.SetCharacter(this);
+        }
+        else
+        {
+            if (Character.ActiveCharacter != null)
+            {
+                Character.ActiveCharacter.Deselect();
+            }
+            CharacterStats.SetCharacter(this);
         }
     }
 
@@ -42,6 +54,7 @@ public abstract class Enemy : Character
         if (EnemyTurn)
         {
             base.Deselect();
+            CharacterStats.SetCharacter(null);
         }
     }
 
@@ -77,7 +90,7 @@ public abstract class Enemy : Character
                 if (Vector2.Distance(new Vector2(x, y), transform.position) <= AttackRange && Game.GetGameTile(x, y) != this)
                 {
                     var NewTarget = GameObject.Instantiate(EnemyTargetPrefab.gameObject).GetComponent<Target>();
-                    NewTarget.transform.position = new Vector3(x, y, transform.position.z - 0.3f);
+                    NewTarget.transform.position = new Vector3(x, y, transform.position.z);
                     Targets.Add(NewTarget);
                     var GameTile = Game.GameMap[x, y];
                     if (GameTile != null)
@@ -96,7 +109,7 @@ public abstract class Enemy : Character
                 }
             }
         }
-        await Task.Run(() => Thread.Sleep(1000));
+        await Tasker.Run(() => Thread.Sleep(1000));
         foreach (var target in Targets)
         {
             GameObject.Destroy(target.gameObject);
@@ -116,7 +129,7 @@ public abstract class Enemy : Character
         if (RequestingAttack == true)
         {
             CancelRequest = true;
-            await Task.Run(() => {
+            await Tasker.Run(() => {
                 while (RequestingAttack) { }
             });
         }
@@ -171,7 +184,7 @@ public abstract class Enemy : Character
                 }
             }
         }
-        await Task.Run(() =>
+        await Tasker.Run(() =>
         {
             while (FoundEnemy == null) { }
         });
@@ -209,18 +222,23 @@ public abstract class Enemy : Character
         return SelectedPair;
     }
 
-    private Vector2Int? FindNextMove(Component target)
+    private Vector2Int? FindNextMove(Component target,Vector2Int? Position = null)
     {
+        if (Position == null)
+        {
+            Position = new Vector2Int((int)transform.position.x,(int)transform.position.y);
+        }
+        Vector2Int position = Position.Value;
         if (Vector2.Distance(target.transform.position,transform.position) <= 1)
         {
             return null;
         }
         else
         {
-            Vector2Int nextPosition = new Vector2Int((int)transform.position.x,(int)transform.position.y + 1);
+            Vector2Int nextPosition = new Vector2Int(position.x,position.y + 1);
             var Distance = GetDistance(nextPosition, target);
 
-            Vector2Int newPosition = new Vector2Int((int)transform.position.x, (int)transform.position.y - 1);
+            Vector2Int newPosition = new Vector2Int(position.x, position.y - 1);
             var newDistance = GetDistance(newPosition, target);
             if (newDistance < Distance)
             {
@@ -228,7 +246,7 @@ public abstract class Enemy : Character
                 nextPosition = newPosition;
             }
 
-            newPosition = new Vector2Int((int)transform.position.x - 1, (int)transform.position.y);
+            newPosition = new Vector2Int(position.x - 1, position.y);
             newDistance = GetDistance(newPosition, target);
             if (newDistance < Distance)
             {
@@ -236,7 +254,7 @@ public abstract class Enemy : Character
                 nextPosition = newPosition;
             }
 
-            newPosition = new Vector2Int((int)transform.position.x + 1, (int)transform.position.y);
+            newPosition = new Vector2Int(position.x + 1, position.y);
             newDistance = GetDistance(newPosition, target);
             if (newDistance < Distance)
             {
@@ -262,24 +280,305 @@ public abstract class Enemy : Character
         EnemyRoutine();
     }
 
-    private async Task EnemyRoutine()
+    private class PathSpace
     {
-        var (FoundPlayer, FoundTrail) = FindNearestPlayer();
-        if (FoundPlayer != null)
+        public PathSpace PreviousPath;
+        public Vector2Int CurrentSpace;
+        public PathSpace(PathSpace previousSpace,Vector2Int currentSpace)
         {
-            for (int i = 0; i < MovesMax; i++)
+            PreviousPath = previousSpace;
+            CurrentSpace = currentSpace;
+        }
+        public override bool Equals(object obj)
+        {
+
+            if (!(obj is null) && obj is PathSpace path)
             {
-                var nextMove = FindNextMove(FoundTrail);
-                if (nextMove == null)
+                //Debug.Log("Paths Are Equal = " + (path.CurrentSpace == CurrentSpace));
+                return path.CurrentSpace == CurrentSpace;
+            }
+            //Debug.Log("END2");
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = -1567871253;
+            hashCode = hashCode * -1521134295 + EqualityComparer<PathSpace>.Default.GetHashCode(PreviousPath);
+            hashCode = hashCode * -1521134295 + EqualityComparer<Vector2Int>.Default.GetHashCode(CurrentSpace);
+            return hashCode;
+        }
+
+        public static bool operator==(PathSpace A, PathSpace B)
+        {
+            if (A is null && B is null)
+            {
+                //Debug.Log("NULLS");
+                return true;
+            }
+            else if (!(A is null))
+            {
+                //Debug.Log("AEQUALS");
+                return A.Equals(B);
+            }
+            else if (!(B is null))
+            {
+                //Debug.Log("BEQUALS");
+                return B.Equals(A);
+            }
+            return false;
+        }
+
+        public static bool operator !=(PathSpace A, PathSpace B)
+        {
+            return !(A == B);
+        }
+    }
+
+    private bool IsPathPlayer(Vector2Int position)
+    {
+        /*if (position.x < 0 || position.y < 0 || position.x > Game.Width - 1 || position.y > Game.Height - 1)
+        {
+            return false;
+        }*/
+        var tile = Game.GetGameTile(position.x, position.y);
+        if (tile is Player)
+        {
+            return true;
+        }
+        else if (tile is Trail trail && trail.Host is Player)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsPathValid(Vector2Int position)
+    {
+        return Game.GetTile(position.x, position.y) != null && Game.GetGameTile(position.x, position.y) == null;
+    }
+
+    private static List<Vector2Int> GetCardinalDirections(Vector2Int position)
+    {
+        return new List<Vector2Int>() { position + Vector2Int.up, position + Vector2Int.down, position + Vector2Int.left, position + Vector2Int.right };
+    }
+
+    private static Vector2Int Convert(Vector2 pos)
+    {
+        return new Vector2Int((int)pos.x,(int)pos.y);
+    }
+
+    private static Task Wait(int time)
+    {
+        return Task.Run(() => Thread.Sleep(time));
+        
+    }
+
+    private class V2IComparer : IEqualityComparer<Vector2Int>
+    {
+        public bool Equals(Vector2Int x, Vector2Int y)
+        {
+            return x.x == y.x && x.y == y.y;
+        }
+
+        public int GetHashCode(Vector2Int obj)
+        {
+            return obj.GetHashCode();
+        }
+    }
+
+    private async Task<(Player, Component, List<Vector2Int>)> GetNextSpaces()
+    {
+        try
+        {
+            //Debug.LogWarning("START");
+            List<PathSpace> PathsToCalculate = new List<PathSpace>() { new PathSpace(null, Convert(transform.position)) };
+            List<PathSpace> NextPathsToCalc = new List<PathSpace>();
+            List<Vector2Int> UsedPositions = new List<Vector2Int>();
+            var Comparer = new V2IComparer();
+            List<(PathSpace, Player, Component)> PlayersFound = new List<(PathSpace, Player, Component)>();
+            do
+            {
+                //Debug.Log("Doing Paths");
+                foreach (var path in PathsToCalculate)
                 {
-                    break;
+                    UsedPositions.Add(path.CurrentSpace);
+                    var cardinals = GetCardinalDirections(path.CurrentSpace);
+                    foreach (var cardinal in cardinals)
+                    {
+                        //Debug.Log("G");
+                        if (Game.WithinBounds(cardinal.x,cardinal.y) && !UsedPositions.Contains(cardinal) && !NextPathsToCalc.Any(setPath => setPath.CurrentSpace == cardinal))
+                        {
+                            //Debug.Log("H");
+                            if (IsPathPlayer(cardinal) && !PlayersFound.Exists(space => space.Item1.Equals(new PathSpace(path, cardinal))))
+                            {
+                                //Debug.Log("I");
+                                var tile = Game.GameMap[cardinal.x, cardinal.y];
+                                Player player = null;
+                                Component target = tile;
+                                if (tile is Player)
+                                {
+                                    Debug.LogWarning("Added Player");
+                                    player = tile as Player;
+                                }
+                                else if (tile is Trail trail && trail.Host is Player p)
+                                {
+                                    //player = (tile as Trail).Host as Player;
+                                    Debug.LogWarning("Added Trail Based Player = " + p);
+                                    player = p;
+                                }
+                                
+                                PlayersFound.Add((new PathSpace(path, cardinal), player, target));
+                                //UsedPositions.Add(cardinal);
+                            }
+                            else if (IsPathValid(cardinal))
+                            {
+                                //Debug.Log("J");
+                                NextPathsToCalc.Add(new PathSpace(path, cardinal));
+                                //Debug.Log("Adding New Path");
+                                //UsedPositions
+                            }
+                            //Debug.Log("1");
+                            //await Wait(1);
+                            //await Task.Run(() => { Thread.Sleep(10); });
+                            //else
+                            //{
+                            //    Debug.Log("K");
+                            //}
+                        }
+                        else
+                        {
+                            //Debug.Log("XXX");
+                        }
+
+                    }
+                    //Debug.Log("3");
+                    //await Wait(1);
                 }
-                else
+                Debug.Log("Used Positions = " + UsedPositions.Count);
+                Debug.Log("Next Points = " + NextPathsToCalc.Count);
+                Debug.Log("Paths to Calc = " + PathsToCalculate.Count);
+                Debug.Log("2");
+                await Wait(1);
+                //await Task.Run(() => { Thread.Sleep(10); });
+                //await Wait(1);
+                //var Temp = PathsToCalculate;
+                //PathsToCalculate = NextPathsToCalc;
+                //NextPathsToCalc = Temp;
+                //NextPathsToCalc.Clear();
+
+
+                PathsToCalculate = NextPathsToCalc;
+                NextPathsToCalc = new List<PathSpace>();
+                //var Temp = NextPathsToCalc;
+                //PathsToCalculate = NextPathsToCalc;
+                //var Temp = PathsToCalculate;
+                //PathsToCalculate = NextPathsToCalc;
+                //NextPathsToCalc = Temp;
+                //NextPathsToCalc.Clear();
+
+                //Debug.Log("Paths to calculate = " + PathsToCalculate.Count);
+            } while (PlayersFound.Count == 0 && PathsToCalculate.Count > 0);
+            // Debug.Log("Used Spaces = " + UsedPositions.Count);
+            // Debug.Log("Players Found = " + PlayersFound.Count);
+            if (PlayersFound.Count > 0)
+            {
+                var CurrentPlayer = PlayersFound[0].Item2;
+                var CurrentTarget = PlayersFound[0].Item3;
+                PathSpace CurrentPath = PlayersFound[0].Item1;
+                List<Vector2Int> PathToTarget = new List<Vector2Int>();
+                //Debug.Log("LOOP START");
+                while (CurrentPath != null)
                 {
-                    await Move(nextMove.Value, 7f);
+                    //Debug.Log("Next = " + CurrentPath);
+                    //Debug.Log("Null = " + CurrentPath == null);
+                    PathToTarget.Add(CurrentPath.CurrentSpace);
+                    CurrentPath = CurrentPath.PreviousPath;
                 }
+                //Debug.LogWarning("Path Start");
+                foreach (var path in PathToTarget)
+                {
+                    Debug.Log("Path = " + path);
+                }
+                //Debug.LogWarning("Path End");
+                //Debug.Log("Path = " + PathToTarget.Count);
+                PathToTarget.Reverse();
+                PathToTarget.Remove(PlayersFound[0].Item1.CurrentSpace);
+                return (CurrentPlayer, CurrentTarget, PathToTarget);
+
+            }
+            else
+            {
+                 Debug.Log("WORST CASE SCENARIO FOUND");
+                var (FoundPlayer, FoundTrail) = FindNearestPlayer();
+                if (FoundPlayer != null)
+                {
+                    List<Vector2Int> PathToTarget = new List<Vector2Int>();
+                    Vector2Int? NextPos = Convert(transform.position);
+                    while (NextPos != null)
+                    {
+                        NextPos = FindNextMove(FoundTrail, NextPos.Value);
+                        if (NextPos != null)
+                        {
+                            PathToTarget.Add(NextPos.Value);
+                        }
+                    }
+                    if (PathToTarget.Count > 0)
+                    {
+                        return (FoundPlayer, FoundTrail, PathToTarget);
+                    }
+                    //var NextPos = FindNextMove(FoundTrail,);
+                }
+                return (null, null, null);
             }
         }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            return (null, null, null);
+        }
+    }
+
+    private async Task EnemyRoutine()
+    {
+        //var (FoundPlayer, FoundTrail) = FindNearestPlayer();
+        try
+        {
+            //Debug.Log("A");
+            var (FoundPlayer, FoundTrail, Spaces) = await GetNextSpaces();
+
+            //Debug.Log("Spaces = " + Spaces.Count);
+           // Debug.Log("B");
+            if (FoundPlayer != null)
+            {
+                //Debug.Log("Spaces = " + Spaces.Count);
+                for (int i = 1; i < MovesMax + 1; i++)
+                {
+                    //var nextMove = FindNextMove(FoundTrail);
+                    if (i > Spaces.Count - 1)
+                    {
+                        Debug.Log("Breaking");
+                        break;
+                    }
+                    else
+                    {
+                        Debug.Log("Moving To " + Spaces[i]);
+                        await Move(Spaces[i], 7f);
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("NULL");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+        }
+
+
+
         //TEMPORARY
         var (AttackPlayer, AttackTrail) = await RequestToAttack();
         if (AttackTrail != null)
@@ -312,7 +611,7 @@ public abstract class Enemy : Character
         }
         EnemyTurn = true;
         ActiveEnemiesLeft[0].Select();
-        await Task.Run(() => {
+        await Tasker.Run(() => {
             while (ActiveEnemiesLeft.Count > 0) { }
         });
         EnemyTurn = false;

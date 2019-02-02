@@ -7,6 +7,7 @@ using UnityEngine;
 
 public struct Arrows
 {
+    private static Arrows Instance;
     public Arrow Up;
     public Arrow Down;
     public Arrow Left;
@@ -21,14 +22,20 @@ public struct Arrows
         Right = right.GetComponent<Arrow>();
         ArrowList = new Arrow[] {Up,Down,Left,Right };
         Host = null;
+        Instance = this;
     }
 
-    public void Enable(bool enabled)
+    public static void EnableArrows(bool enabled,bool activation = true)
     {
-        Up.Enable(enabled);
-        Down.Enable(enabled);
-        Left.Enable(enabled);
-        Right.Enable(enabled);
+        Instance.Enable(enabled, activation);
+    }
+
+    public void Enable(bool enabled,bool activation = true)
+    {
+        Up.Enable(enabled,activation);
+        Down.Enable(enabled,activation);
+        Left.Enable(enabled,activation);
+        Right.Enable(enabled,activation);
         if (enabled == true)
         {
             Check(new Vector2Int((int)Up.transform.position.x,(int)Up.transform.position.y - 1));

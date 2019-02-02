@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
+    public static Action TutorialEvent;
     // Start is called before the first frame update
     bool Enabled = true;
     int ArrowType;
@@ -27,10 +29,11 @@ public class Arrow : MonoBehaviour
         }
     }
 
-    public void Enable(bool enable)
+    public void Enable(bool enable,bool activation = true)
     {
         Enabled = enable;
-        gameObject.SetActive(Enabled);
+        if (activation)
+            gameObject.SetActive(Enabled);
     }
     
     void OnMouseDown()
@@ -39,6 +42,11 @@ public class Arrow : MonoBehaviour
         CDebug.Log("Enabled = " + Enabled);
         if (Player.ActivePlayer != null && Enabled)
         {
+            if (TutorialEvent != null)
+            {
+                TutorialEvent?.Invoke();
+                TutorialEvent = null;
+            }
             Vector2Int newPosition = new Vector2Int((int)Player.ActivePlayer.transform.position.x, (int)Player.ActivePlayer.transform.position.y);
             if (ArrowType == 1)
             {

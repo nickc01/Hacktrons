@@ -10,6 +10,11 @@ public class SpawnTile : Tile
 {
     public static List<SpawnTile> SpawnTiles = new List<SpawnTile>();
     public Player SelectedPlayer { get; private set; } = null;
+    public static SpawnTile SelectedTile { get; private set; } = null;
+
+    //public bool ActiveForTutorial { get; set; } = false;
+    public Action TutorialOnClick;
+
     public override void OnSpawn()
     {
         base.OnSpawn();
@@ -23,11 +28,11 @@ public class SpawnTile : Tile
 
     void OnGameStart()
     {
-        CDebug.Log("SPAWNTILES = " + SpawnTiles.Count);
+        //CDebug.Log("SPAWNTILES = " + SpawnTiles.Count);
         SpawnTiles.Remove(this);
-        CDebug.Log("TILE IS NULL = " + (this == null));
-        CDebug.Log("Transform = " + transform);
-        CDebug.Log("Position = " + transform.position);
+        //CDebug.Log("TILE IS NULL = " + (this == null));
+        //CDebug.Log("Transform = " + transform);
+        //CDebug.Log("Position = " + transform.position);
         Vector2 Position = transform.position;
         Game.DestroyTile(new Vector2Int((int)Position.x,(int)Position.y));
         Game.SpawnTile<BasicTile>(new Vector2Int((int)Position.x,(int)Position.y));
@@ -42,16 +47,55 @@ public class SpawnTile : Tile
 
     public async void OnMouseDown()
     {
-        if (SelectedPlayer == null)
+        if (Game.ZoomedOnGame)
         {
-            var Player = await CharacterSelector.Select(new Vector2Int((int)transform.position.x, (int)transform.position.y));
-            SelectedPlayer = Player;
-            Player.transform.position = new Vector3(transform.position.x,transform.position.y,Player.transform.position.z);
-        }
-        else
-        {
-            CharacterSelector.UndoSelection(SelectedPlayer);
-            SelectedPlayer = null;
+            if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && TutorialOnClick != null))
+            {
+                if (TutorialOnClick != null)
+                {
+                    TutorialOnClick?.Invoke();
+                    TutorialOnClick = null;
+                }
+                if (SelectedTile == this)
+                {
+                    SelectedTile = null;
+                    Game.SpawnTileSelector.SetActive(false);
+                    CharacterSelector.Cancel();
+                    return;
+                }
+                if (SelectedPlayer == null)
+                {
+                    SelectedTile = this;
+                    Game.SpawnTileSelector.transform.position = transform.position;
+                    Game.SpawnTileSelector.SetActive(true);
+                    var Player = await CharacterSelector.Select(new Vector2Int((int)transform.position.x, (int)transform.position.y));
+                    if (Player != null)
+                    {
+                        SelectedPlayer = Player;
+                        if (Player.Players.Count == 1)
+                        {
+                            //Game.StartGameButton
+                            Game.StartGameButton.gameObject.SetActive(true);
+                            Dragger.Drag(Game.StartGameButton.gameObject, null, new Vector2(-100, 35), 1.3f, LerpManager.SmoothOut, true);
+                        }
+                        Player.transform.position = new Vector3(transform.position.x, transform.position.y, Player.transform.position.z);
+                        Game.SpawnTileSelector.SetActive(false);
+                        SelectedTile = null;
+                    }
+                }
+                else
+                {
+                    CharacterSelector.UndoSelection(SelectedPlayer);
+                    if (Player.Players.Count == 0)
+                    {
+                        //Game.StartGameButton
+                        Dragger.Drag(Game.StartGameButton.gameObject, null, new Vector2(100, 35), 1.3f, LerpManager.SmoothOut, true);
+                    }
+                    SelectedPlayer = null;
+                    Game.SpawnTileSelector.SetActive(false);
+                    SelectedTile = null;
+                }
+            }
         }
     }
 }

@@ -1,19 +1,19 @@
-{ "height":8,
+{ "height":5,
  "infinite":false,
  "layers":[
         {
-         "data":[0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
-         "height":8,
-         "id":5,
+         "data":[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+         "height":5,
+         "id":8,
          "name":"Tile Layer 1",
          "opacity":1,
          "type":"tilelayer",
          "visible":true,
-         "width":8,
+         "width":15,
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
+ "nextlayerid":9,
  "nextobjectid":1,
  "orientation":"orthogonal",
  "renderorder":"left-down",
@@ -22,14 +22,10 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/..\/..\/..\/Downloads\/Main Tiles.tsx"
-        }, 
-        {
-         "firstgid":1,
          "source":"..\/..\/..\/..\/..\/..\/Downloads\/Main Tiles.tsx"
         }],
  "tilewidth":100,
  "type":"map",
  "version":1.2,
- "width":8
+ "width":15
 }

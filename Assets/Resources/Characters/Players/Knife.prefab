@@ -94,6 +94,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterColor: {r: 0, g: 0.4156863, b: 0.76470596, a: 1}
+  CancelRequest: 0
 --- !u!61 &950487984365483691
 BoxCollider2D:
   m_ObjectHideFlags: 0

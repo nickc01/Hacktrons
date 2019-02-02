@@ -32,6 +32,9 @@ public abstract class Character : MonoBehaviour, IHasID
     protected abstract void TurnPostpone();
     protected abstract void TurnEnd();
 
+    public virtual string Name => GetType().Name;
+    public abstract string Info { get; }
+
     protected virtual void ResetTurn()
     {
         MovesDone = 0;
@@ -131,7 +134,7 @@ public abstract class Character : MonoBehaviour, IHasID
         if (Moving)
         {
             Moving = false;
-            await Task.Run(() => {
+            await Tasker.Run(() => {
                 while (!Done) { }
             });
         }
@@ -165,8 +168,9 @@ public abstract class Character : MonoBehaviour, IHasID
             
         }
         Moving = true;
+        CharacterStats.Refresh();
         StaticUpdate.Updates += Update;
-        await Task.Run(() => {
+        await Tasker.Run(() => {
             while (!Done && Moving) { }
         });
         transform.position = To;
@@ -197,6 +201,7 @@ public abstract class Character : MonoBehaviour, IHasID
 
     protected Trail SpawnTrail(bool ToEnd = false)
     {
+        //System.Span<int> test;
         Debug.Log("A");
         var NewTrail = GameObject.Instantiate(Game.Trail.gameObject).GetComponent<Trail>();
         Debug.Log("B");

@@ -74,7 +74,7 @@ public class LerpManager : MonoBehaviour
             }
         };
         updateEvents += preFunc;
-        await Task.Run(() => {
+        await Tasker.Run(() => {
             while (!Done) { }
         });
         updateEvents -= preFunc;

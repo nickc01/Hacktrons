@@ -7,60 +7,92 @@ using UnityEngine;
 
 //namespace Game
 //{
-    public static class Buttons
-    {
-        public static async void PlayButton()
-        {
-            //await CanvasController.MovePanes("Main Menu", "Select Level");
-            await Pane.SwitchTo("Main Menu", "Select Level");
-        }
-        public static async void BackMainMenuButton()
-        {
-            //await CanvasController.MovePanes("Select Level", "Main Menu");
-            await Pane.SwitchBackTo("Select Level", "Main Menu");
-        }
+public static class Buttons
+{
 
-        public static void StartGameButton()
+    //public static bool StartButtonAFT = false;
+    public static Action StartButtonTutClick;
+    public static Action FinishButtonTutClick;
+    public static Action AttackButtonTutClick;
+    public static bool DisableCancel = false;
+    public static bool DisableAttack = false;
+    public static bool DisableFinish = false;
+    public static async void PlayButton()
+    {
+        //await CanvasController.MovePanes("Main Menu", "Select Level");
+        await Pane.SwitchTo("Main Menu", "Select Level");
+    }
+    public static async void BackMainMenuButton()
+    {
+        //await CanvasController.MovePanes("Select Level", "Main Menu");
+        await Pane.SwitchBackTo("Select Level", "Main Menu");
+    }
+
+    public static void StartGameButton()
+    {
+        //GameObject.FindGameObjectWithTag("Canvas").SetActive(false);
+        //ScreenCapture.CaptureScreenshot("LevelScreenShot",2);
+        if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && StartButtonTutClick != null))
         {
-            //GameObject.FindGameObjectWithTag("Canvas").SetActive(false);
-            //ScreenCapture.CaptureScreenshot("LevelScreenShot",2);
             if (Player.Players.Count > 0)
             {
+                if (StartButtonTutClick != null)
+                {
+                    StartButtonTutClick?.Invoke();
+                    StartButtonTutClick = null;
+                }
                 Game.StartGame();
             }
         }
-        //Called when the player wishes to attack
-        public static void AttackButton()
+    }
+    //Called when the player wishes to attack
+    public static void AttackButton()
+    {
+        if (Player.ActivePlayer != null && DisableAttack == false)
         {
-            if (Player.ActivePlayer != null)
+            if (AttackButtonTutClick != null)
             {
-                Player.ActivePlayer.InitiateAttack();
+                AttackButtonTutClick?.Invoke();
+                AttackButtonTutClick = null;
             }
-        }
-
-        //Called when the player wants to finish the turn
-        public static void FinishTurnButton()
-        {
-            Player.ActivePlayer?.FinishTurn();
-        }
-
-        //Called when the player wants to cancel the attack
-        public static void CancelAttackButton()
-        {
-            if (Player.ActivePlayer != null)
-            {
-                Player.ActivePlayer.CancelRequest = true;
-            }
-        }
-
-        public static void BackButton()
-        {
-            Game.ResetToSelectionScreen();
-        }
-
-        public static void QuitButton()
-        {
-            Application.Quit();
+            Player.ActivePlayer.InitiateAttack();
         }
     }
+
+    //Called when the player wants to finish the turn
+    public static void FinishTurnButton()
+    {
+        //if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && FinishButtonTutClick != null))
+        //{
+            if (FinishButtonTutClick != null)
+            {
+                FinishButtonTutClick?.Invoke();
+                FinishButtonTutClick = null;
+            }
+            if (DisableFinish == false)
+            {
+                Player.ActivePlayer?.FinishTurn();
+            }
+        //}
+    }
+
+    //Called when the player wants to cancel the attack
+    public static void CancelAttackButton()
+    {
+        if (Player.ActivePlayer != null && DisableCancel == false)
+        {
+            Player.ActivePlayer.CancelRequest = true;
+        }
+    }
+
+    public static void BackButton()
+    {
+        Game.ResetToSelectionScreen();
+    }
+
+    public static void QuitButton()
+    {
+        Application.Quit();
+    }
+}
 //}

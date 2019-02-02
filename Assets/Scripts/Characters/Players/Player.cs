@@ -8,6 +8,9 @@ using UnityEngine;
 
 public abstract class Player : Character
 {
+    public static Action TutorialEvent;
+
+
     private static List<Player> players = new List<Player>();
     public static ReadOnlyCollection<Player> Players => players.AsReadOnly();
 
@@ -15,13 +18,15 @@ public abstract class Player : Character
 
     private static List<Player> ActivePlayersLeft = new List<Player>();
 
-    public static bool PlayersTurn { get; private set; } = false;
+    public static bool PlayersTurn { get; set; } = false;
 
     private static SpriteRenderer SelectionTarget;
     private static Arrows arrows;
 
     private bool RequestingAttack = false;
     public bool CancelRequest = false;
+
+    public abstract int GetStartingAmount();
 
     public override void Select()
     {
@@ -51,6 +56,10 @@ public abstract class Player : Character
             CDebug.Log("Same Player = " + (ActivePlayer == this));
             if (ActivePlayer == this)
             {
+                MainButtons.Attack.SetActive(true);
+                MainButtons.FinishTurn.SetActive(true);
+                //MainButtons.CancelAttack.SetActive(false);
+                CharacterStats.SetCharacter(this);
                 SelectionTarget.gameObject.SetActive(true);
                 Selection.SelectedCharacter = this;
                 SelectionTarget.transform.position = transform.position;
@@ -71,6 +80,10 @@ public abstract class Player : Character
     {
         SelectionTarget.gameObject.SetActive(false);
         Selection.SelectedCharacter = null;
+        MainButtons.Attack.SetActive(false);
+        MainButtons.FinishTurn.SetActive(false);
+        MainButtons.CancelAttack.SetActive(false);
+        CharacterStats.Clear();
         base.Deselect();
     }
 
@@ -122,15 +135,21 @@ public abstract class Player : Character
         {
             await FoundEnemy.Damage(AttackDamage);
             //arrows.Enable(true);
-            Pane.GetPane("Game").gameObject.SetActive(true);
-            Pane.GetPane("Cancel Buttons").gameObject.SetActive(false);
+            //Pane.GetPane("Game").gameObject.SetActive(true);
+            //Pane.GetPane("Cancel Buttons").gameObject.SetActive(false);
+            MainButtons.Attack.SetActive(false);
+            MainButtons.FinishTurn.SetActive(false);
+            MainButtons.CancelAttack.SetActive(true);
             ReselectionEnabled = true;
             FinishTurn();
         }
         else
         {
-            Pane.GetPane("Game").gameObject.SetActive(true);
-            Pane.GetPane("Cancel Buttons").gameObject.SetActive(false);
+            //Pane.GetPane("Game").gameObject.SetActive(true);
+            //Pane.GetPane("Cancel Buttons").gameObject.SetActive(false);
+            MainButtons.Attack.SetActive(true);
+            MainButtons.FinishTurn.SetActive(true);
+            MainButtons.CancelAttack.SetActive(false);
             ReselectionEnabled = true;
             if (MovesDone != MovesMax)
             {
@@ -144,7 +163,7 @@ public abstract class Player : Character
         if (RequestingAttack == true)
         {
             CancelRequest = true;
-            await Task.Run(() => {
+            await Tasker.Run(() => {
                 while (RequestingAttack) { }
             });
         }
@@ -152,8 +171,11 @@ public abstract class Player : Character
         arrows.Enable(false);
         ReselectionEnabled = false;
 
-        Pane.GetPane("Game").gameObject.SetActive(false);
-        Pane.GetPane("Cancel Buttons").gameObject.SetActive(true);
+        //Pane.GetPane("Game").gameObject.SetActive(false);
+        //Pane.GetPane("Cancel Buttons").gameObject.SetActive(true);
+        MainButtons.Attack.SetActive(false);
+        MainButtons.FinishTurn.SetActive(false);
+        MainButtons.CancelAttack.SetActive(true);
 
         Character FoundEnemy = null;
         Component FoundTile = null;
@@ -161,6 +183,11 @@ public abstract class Player : Character
         List<Target> Targets = new List<Target>();
 
         var PlayerTargetPrefab = Game.PlayerTarget.GetComponent<Target>();
+
+        foreach (var enemy in Enemy.Enemies)
+        {
+            enemy.GetComponent<BoxCollider2D>().enabled = false;
+        }
         
         for (int x = 0; x < Game.Width; x++)
         {
@@ -169,7 +196,7 @@ public abstract class Player : Character
                 if (Vector2.Distance(new Vector2(x,y),transform.position) <= AttackRange && Game.GetGameTile(x,y) != this)
                 {
                     var NewTarget = GameObject.Instantiate(PlayerTargetPrefab.gameObject).GetComponent<Target>();
-                    NewTarget.transform.position = new Vector3(x, y,transform.position.z - 0.3f);
+                    NewTarget.transform.position = new Vector3(x, y,transform.position.z);
                     Targets.Add(NewTarget);
                     var Coordinates = new Vector2Int(x, y);
                     var gameTile = Game.GameMap[x, y];
@@ -213,23 +240,23 @@ public abstract class Player : Character
                     }
                     //renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, Alpha);
                     NewTarget.TargetSelectEvent += () => {
-                        CDebug.Log("CCC");
+                        //CDebug.Log("CCC");
                         if (Game.HasGameTile(Coordinates.x,Coordinates.y))
                         {
-                            CDebug.Log("BBB");
+                            //CDebug.Log("BBB");
                             var GameTile = Game.GetGameTile(Coordinates.x, Coordinates.y);
                             if (GameTile is Trail trail)
                             {
                                 if (trail.Host is Enemy)
                                 {
-                                    CDebug.Log("Found ENEMY");
+                                    //CDebug.Log("Found ENEMY");
                                     FoundEnemy = trail.Host;
                                     FoundTile = trail;
                                 }
                             }
                             else if (GameTile is Enemy enemy)
                             {
-                                CDebug.Log("Found ENEMY 2");
+                               // CDebug.Log("Found ENEMY 2");
                                 FoundEnemy = enemy;
                                 FoundTile = enemy;
                             }
@@ -238,13 +265,17 @@ public abstract class Player : Character
                 }
             }
         }
-        await Task.Run(() =>
+        await Tasker.Run(() =>
         {
             while (FoundEnemy == null && CancelRequest == false) { }
         });
         foreach (var target in Targets)
         {
             GameObject.Destroy(target.gameObject);
+        }
+        foreach (var enemy in Enemy.Enemies)
+        {
+            enemy.GetComponent<BoxCollider2D>().enabled = true;
         }
         /*if (ReEnable)
         {
@@ -276,6 +307,8 @@ public abstract class Player : Character
         }
     }
 
+    public static bool AutoSelect = true;
+
     public static async Task BeginTurns()
     {
         ResetTurns();
@@ -284,12 +317,15 @@ public abstract class Player : Character
             ActivePlayersLeft.Add(player);
         }
         PlayersTurn = true;
-        Pane.GetPane("Game").gameObject.SetActive(true);
-        ActivePlayersLeft[0].Select();
-        await Task.Run(() => {
+        //Pane.GetPane("Game").gameObject.SetActive(true);
+        if (AutoSelect)
+        {
+            ActivePlayersLeft[0].Select();
+        }
+        await Tasker.Run(() => {
             while (ActivePlayersLeft.Count > 0) { }
         });
-        Pane.GetPane("Game").gameObject.SetActive(false);
+        //Pane.GetPane("Game").gameObject.SetActive(false);
         PlayersTurn = false;
     }
 }

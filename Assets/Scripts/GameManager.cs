@@ -7,7 +7,7 @@ using UnityEngine;
 
 public partial class Game : MonoBehaviour
 {
-    public static event Action GameStartEvent;
+    /*public static event Action GameStartEvent;
     public static bool GameStarted { get; private set; } = false;
 
     public static async void StartGame()
@@ -49,12 +49,13 @@ public partial class Game : MonoBehaviour
         Pane.GetPane("Game").gameObject.SetActive(false);
     }
 
-    public static void ResetToSelectionScreen()
+    public async static Task ResetToSelectionScreen()
     {
         CameraTarget.Active = true;
         Game.DeleteMap();
-        Pane.GetPane("Results Screen").gameObject.SetActive(false);
-        Pane.GetPane("Select Level").gameObject.SetActive(true);
+        //Pane.GetPane("Results Screen").Move()
+        //Pane.GetPane("Results Screen").gameObject.SetActive(false);
+        //Pane.GetPane("Select Level").gameObject.SetActive(true);
     }
 
     private static void Win()
@@ -66,5 +67,5 @@ public partial class Game : MonoBehaviour
     {
         StopGame();
         Pane.GetPane("Results Screen").gameObject.SetActive(true);
-    }
+    }*/
 }

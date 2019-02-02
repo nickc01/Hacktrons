@@ -9,6 +9,15 @@ TagManager:
   - Arrow
   - Canvas
   - BackgroundCamera
+  - StartGameButton
+  - ToolContainer
+  - SidePanel
+  - ButtonArea
+  - TutorialArea
+  - Stats
+  - CancelButtons
+  - FinishButton
+  - AttackButton
   layers:
   - Default
   - TransparentFX
@@ -20,7 +29,7 @@ TagManager:
   - 
   - PostProcessing
   - Background
-  - 
+  - TopUI
   - 
   - 
   - 
@@ -57,4 +66,7 @@ TagManager:
     locked: 0
   - name: SelectionTarget
     uniqueID: 305666783
+    locked: 0
+  - name: Top UI
+    uniqueID: 685670345
     locked: 0
