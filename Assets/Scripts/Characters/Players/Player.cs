@@ -133,6 +133,7 @@ public abstract class Player : Character
         var (FoundEnemy, FoundTile) = await RequestToAttack();
         if (FoundEnemy != null)
         {
+            AttackedEnemy = true;
             await FoundEnemy.Damage(AttackDamage);
             //arrows.Enable(true);
             //Pane.GetPane("Game").gameObject.SetActive(true);
@@ -325,6 +326,14 @@ public abstract class Player : Character
         await Tasker.Run(() => {
             while (ActivePlayersLeft.Count > 0) { }
         });
+        foreach (var player in Player.players)
+        {
+            if (player.Check != null)
+            {
+                GameObject.Destroy(player.Check);
+                player.Check = null;
+            }
+        }
         //Pane.GetPane("Game").gameObject.SetActive(false);
         PlayersTurn = false;
     }

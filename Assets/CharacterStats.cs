@@ -3,10 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
-public class CharacterStats : MonoBehaviour
+public class CharacterStats : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public static CharacterStats Instance;
+
+    private CanvasGroup group;
+
+    private float baseAlpha;
+    private float invisibleAlpha = 0.15f;
+
+    private float TargetAlpha;
 
     public TextMeshProUGUI MovesLeft;
     public TextMeshProUGUI AttackRange;
@@ -24,7 +32,15 @@ public class CharacterStats : MonoBehaviour
     void Start()
     {
         Instance = this;
+        group = GetComponent<CanvasGroup>();
+        baseAlpha = group.alpha;
+        TargetAlpha = baseAlpha;
         Clear();
+    }
+
+    void Update()
+    {
+        group.alpha = Mathf.Lerp(group.alpha,TargetAlpha,5f * Time.deltaTime);
     }
 
     public static void Clear()
@@ -38,7 +54,8 @@ public class CharacterStats : MonoBehaviour
         Instance.Info.text = "";
         Instance.MaxMoves.text = "";
         Instance.CharacterTexture.texture = null;
-        Instance.Blocker.SetActive(true);
+        //Instance.Blocker.SetActive(true);
+        Instance.gameObject.SetActive(false);
     }
 
     public static void SetCharacter(Character character)
@@ -57,11 +74,21 @@ public class CharacterStats : MonoBehaviour
         Instance.Info.text = character.Info;
         Instance.MaxMoves.text = character.MovesMax.ToString();
         Instance.CharacterTexture.texture = character.GetComponent<SpriteRenderer>().sprite.texture;
-        Instance.Blocker.SetActive(false);
+        Instance.gameObject.SetActive(true);
     }
 
     public static void Refresh()
     {
         SetCharacter(MainCharacter);
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        TargetAlpha = invisibleAlpha;
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        TargetAlpha = baseAlpha;
     }
 }

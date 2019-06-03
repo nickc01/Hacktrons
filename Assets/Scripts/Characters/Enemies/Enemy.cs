@@ -509,11 +509,11 @@ public abstract class Enemy : Character
             }
             else
             {
-                 Debug.Log("WORST CASE SCENARIO FOUND");
+                 //Debug.Log("WORST CASE SCENARIO FOUND");
                 var (FoundPlayer, FoundTrail) = FindNearestPlayer();
                 if (FoundPlayer != null)
                 {
-                    List<Vector2Int> PathToTarget = new List<Vector2Int>();
+                    List<Vector2Int> PathToTarget = new List<Vector2Int>() { Convert(transform.position) };
                     Vector2Int? NextPos = Convert(transform.position);
                     while (NextPos != null)
                     {
@@ -583,6 +583,7 @@ public abstract class Enemy : Character
         var (AttackPlayer, AttackTrail) = await RequestToAttack();
         if (AttackTrail != null)
         {
+            AttackedEnemy = true;
             await AttackPlayer.Damage(AttackDamage);
         }
         CDebug.Log("FINISHING ENEMY TURN");
@@ -614,6 +615,14 @@ public abstract class Enemy : Character
         await Tasker.Run(() => {
             while (ActiveEnemiesLeft.Count > 0) { }
         });
+        foreach (var enemy in enemies)
+        {
+            if (enemy.Check != null)
+            {
+                GameObject.Destroy(enemy.Check);
+                enemy.Check = null;
+            }
+        }
         EnemyTurn = false;
     }
 }

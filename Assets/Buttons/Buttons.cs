@@ -20,11 +20,13 @@ public static class Buttons
     public static async void PlayButton()
     {
         //await CanvasController.MovePanes("Main Menu", "Select Level");
+        Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
         await Pane.SwitchTo("Main Menu", "Select Level");
     }
     public static async void BackMainMenuButton()
     {
         //await CanvasController.MovePanes("Select Level", "Main Menu");
+        Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
         await Pane.SwitchBackTo("Select Level", "Main Menu");
     }
 
@@ -41,6 +43,7 @@ public static class Buttons
                     StartButtonTutClick?.Invoke();
                     StartButtonTutClick = null;
                 }
+                Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
                 Game.StartGame();
             }
         }
@@ -55,6 +58,7 @@ public static class Buttons
                 AttackButtonTutClick?.Invoke();
                 AttackButtonTutClick = null;
             }
+            Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
             Player.ActivePlayer.InitiateAttack();
         }
     }
@@ -64,15 +68,16 @@ public static class Buttons
     {
         //if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && FinishButtonTutClick != null))
         //{
-            if (FinishButtonTutClick != null)
-            {
-                FinishButtonTutClick?.Invoke();
-                FinishButtonTutClick = null;
-            }
-            if (DisableFinish == false)
-            {
-                Player.ActivePlayer?.FinishTurn();
-            }
+        if (FinishButtonTutClick != null)
+        {
+            FinishButtonTutClick?.Invoke();
+            FinishButtonTutClick = null;
+        }
+        if (DisableFinish == false)
+        {
+            //Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
+            Player.ActivePlayer?.FinishTurn();
+        }
         //}
     }
 
@@ -81,17 +86,20 @@ public static class Buttons
     {
         if (Player.ActivePlayer != null && DisableCancel == false)
         {
+            Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
             Player.ActivePlayer.CancelRequest = true;
         }
     }
 
     public static void BackButton()
     {
+        Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
         Game.ResetToSelectionScreen();
     }
 
     public static void QuitButton()
     {
+        Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
         Application.Quit();
     }
 }

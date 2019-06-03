@@ -39,6 +39,10 @@ public class LevelManager : MonoBehaviour
 
     public static bool UnlockLevel(int LevelNumber)
     {
+        if (LevelNumber > manager.transform.childCount)
+        {
+            return false;
+        }
         var Child = manager.transform.GetChild(LevelNumber - 1);
         if (Child == null)
         {

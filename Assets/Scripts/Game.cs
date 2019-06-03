@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine.UI;
+using System.Threading;
 
 public partial class Game : MonoBehaviour
 {
@@ -27,6 +28,13 @@ public partial class Game : MonoBehaviour
     private Text LevelUnlockedText;
     [SerializeField]
     private GameObject spawnTileSelector;
+    [SerializeField]
+    private GameObject characterCheck;
+    public static GameObject CharacterCheck => manager.characterCheck;
+
+    [SerializeField]
+    private AudioSource primaryAudio;
+    public static AudioSource PrimaryAudio => manager.primaryAudio;
 
     public static GameObject SpawnTileSelector => manager.spawnTileSelector;
 
@@ -193,7 +201,9 @@ public partial class Game : MonoBehaviour
         ZoomedOnGame = true;
         if (levelNumber == 1)
         {
-            TutorialRoutine.Tutorial();
+            var Task = TutorialRoutine.Tutorial();
+            //GC.KeepAlive(Task);
+            //Task.Run(() => TutorialRoutine.Tutorial().Wait());
         }
 
         //await away;
@@ -492,6 +502,14 @@ public partial class Game : MonoBehaviour
         CameraTarget.Movable = false;
         CameraTarget.Zooming = false;
         Pane.GetPane("Game").gameObject.SetActive(false);
+        foreach (var player in Player.Players)
+        {
+            player.ResetTurn();
+        }
+        foreach (var enemy in Enemy.Enemies)
+        {
+            enemy.ResetTurn();
+        }
     }
 
     public static bool WaitWin = false;
@@ -503,8 +521,12 @@ public partial class Game : MonoBehaviour
             await TutorialRoutine.WaitWhile(() => WaitWin);
         }
         StopGame();
-        LevelManager.UnlockLevel(LevelNumber + 1);
-        manager.LevelUnlockedText.gameObject.SetActive(true);
+        await Task.Run(() => Thread.Sleep(1000));
+        Game.PrimaryAudio.PlayOneShot(Sounds.WinSound);
+        if (LevelManager.UnlockLevel(LevelNumber + 1))
+        {
+            manager.LevelUnlockedText.gameObject.SetActive(true);
+        }
         manager.ResultsText.text = "You Win";
         Pane.GetPane("Results Screen").Enable();
         //Pane.GetPane("Results Screen").gameObject.SetActive(true);
@@ -512,6 +534,8 @@ public partial class Game : MonoBehaviour
     private static async Task Lose()
     {
         StopGame();
+        await Task.Run(() => Thread.Sleep(1000));
+        Game.PrimaryAudio.PlayOneShot(Sounds.LoseSound);
         manager.ResultsText.text = "You Lose";
         manager.LevelUnlockedText.gameObject.SetActive(false);
         Pane.GetPane("Results Screen").Enable();

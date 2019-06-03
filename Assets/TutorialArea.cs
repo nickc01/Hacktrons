@@ -13,6 +13,11 @@ public class TutorialArea : MonoBehaviour
 
     TextMeshProUGUI textArea;
 
+    [SerializeField]
+    private AudioClip tutorialSound;
+
+    public static AudioClip TutorialSound => Instance.tutorialSound; 
+
     public static string TextArea
     {
         get => Instance.textArea.text;

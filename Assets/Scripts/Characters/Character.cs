@@ -3,17 +3,21 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 public abstract class Character : MonoBehaviour, IHasID
 {
-
+    protected GameObject Check;
+    new private AudioSource audio;
+    protected bool AttackedEnemy = false;
     public static bool ReselectionEnabled { get; protected set; } = true;
     public virtual void OnSpawn()
     {
         Game.GameMap[(int)transform.position.x, (int)transform.position.y] = this;
+        audio = GetComponent<AudioSource>();
     }
     public virtual void OnGameStart()
     {
@@ -35,9 +39,10 @@ public abstract class Character : MonoBehaviour, IHasID
     public virtual string Name => GetType().Name;
     public abstract string Info { get; }
 
-    protected virtual void ResetTurn()
+    public virtual void ResetTurn()
     {
         MovesDone = 0;
+        AttackedEnemy = false;
         FinishedTurn = false;
     }
 
@@ -58,6 +63,8 @@ public abstract class Character : MonoBehaviour, IHasID
             {
                 ActiveCharacter.Deselect();
             }
+            audio.clip = Sounds.RiseSound;
+            audio.Play();
             ActiveCharacter = this;
             if (Trails.Count == MaxTrailLength)
             {
@@ -71,6 +78,11 @@ public abstract class Character : MonoBehaviour, IHasID
     {
         if (this == ActiveCharacter)
         {
+            if (!AttackedEnemy)
+            {
+                audio.clip = Sounds.LowerSound;
+                audio.Play();
+            }
             ActiveCharacter = null;
             if (Trails.Count > 0)
             {
@@ -82,6 +94,9 @@ public abstract class Character : MonoBehaviour, IHasID
             }
             else
             {
+                //var check = GameObject.Instantiate(Game.CharacterCheck, transform.position, Quaternion.identity);
+                //check.SetActive(true);
+                //Check = check;
                 TurnPostpone();
             }
         }
@@ -89,6 +104,9 @@ public abstract class Character : MonoBehaviour, IHasID
 
     public void FinishTurn()
     {
+        var check = GameObject.Instantiate(Game.CharacterCheck, transform.position, Quaternion.identity);
+        check.SetActive(true);
+        Check = check;
         FinishedTurn = true;
         Deselect();
     }
@@ -140,6 +158,7 @@ public abstract class Character : MonoBehaviour, IHasID
         }
         Done = false;
         float T = 0;
+        audio.PlayOneShot(Sounds.MovementSound);
         Vector3 From = transform.position;
         Vector3 To = new Vector3(to.x,to.y,transform.position.z);
         Action Update = () =>
@@ -181,15 +200,19 @@ public abstract class Character : MonoBehaviour, IHasID
 
     public async Task Damage(int damage)
     {
+        audio.PlayOneShot(Sounds.DamageSound);
         for (int i = 0; i < damage; i++)
         {
             if (trails.Count > 0)
             {
                 RemoveLastTrail();
+                await Task.Run(() => Thread.Sleep(100));
             }
             else
             {
                 Game.DestroyCharacter(this);
+                await Task.Run(() => Thread.Sleep(100));
+                break;
             }
         }
     }

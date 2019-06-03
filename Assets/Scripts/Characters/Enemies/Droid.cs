@@ -9,6 +9,11 @@ public class Droid : Enemy
 {
     public override int GetTileID() => 4;
 
+    public override int AttackDamage => 3;
+    public override int MaxTrailLength => 4;
+    public override int AttackRange => 4;
+    public override int MovesMax => 3;
+
     private static bool loaded = false;
     private static Sprite ASprite;
     private static Sprite BSprite;
