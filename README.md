@@ -7,3 +7,6 @@ Hacktrons is a turn-based strategy game made for college class. It is based on a
 * 8-Bit Font : https://www.1001freefonts.com/8-bit-operator.font
 * Music - Incompetech - Interloper : https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100401
 * Tutorial Text Sounds : https://www.amazon.com/dp/B008OBLI2G/?coliid=I1LOPLWQYEV6U&colid=2LABLE1NWXHIC&psc=0&ref_=lv_ov_lig_dp_it
+
+
+![Image of Hacktrons](https://nickc01.github.io/screenshots/hacktrons.png)
