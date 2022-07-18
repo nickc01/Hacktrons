@@ -1,18 +1,16 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Selection : MonoBehaviour
 {
     public static Selection Instance { get; private set; }
     public static Character SelectedCharacter;
 
-    void Start()
+    private void Start()
     {
         Instance = this;
     }
 
-    void Update()
+    private void Update()
     {
         if (SelectedCharacter != null)
         {

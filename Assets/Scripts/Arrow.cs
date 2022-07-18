@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Arrow : MonoBehaviour
 {
     public static Action TutorialEvent;
+
     // Start is called before the first frame update
-    bool Enabled = true;
-    int ArrowType;
-    void Start()
+    private bool Enabled = true;
+    private int ArrowType;
+
+    private void Start()
     {
         if (gameObject.name == "Up Arrow")
         {
@@ -29,17 +29,15 @@ public class Arrow : MonoBehaviour
         }
     }
 
-    public void Enable(bool enable,bool activation = true)
+    public void Enable(bool enable, bool activation = true)
     {
         Enabled = enable;
         if (activation)
             gameObject.SetActive(Enabled);
     }
-    
-    void OnMouseDown()
+
+    private void OnMouseDown()
     {
-        CDebug.Log("Active Player = " + Player.ActivePlayer);
-        CDebug.Log("Enabled = " + Enabled);
         if (Player.ActivePlayer != null && Enabled)
         {
             if (TutorialEvent != null)
@@ -50,7 +48,7 @@ public class Arrow : MonoBehaviour
             Vector2Int newPosition = new Vector2Int((int)Player.ActivePlayer.transform.position.x, (int)Player.ActivePlayer.transform.position.y);
             if (ArrowType == 1)
             {
-                newPosition += new Vector2Int(0,1);
+                newPosition += new Vector2Int(0, 1);
             }
             if (ArrowType == 2)
             {

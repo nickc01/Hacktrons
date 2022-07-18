@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Droid : Enemy
 {
-    public override int GetTileID() => 4;
+    public override int GetTileID()
+    {
+        return 4;
+    }
 
     public override int AttackDamage => 3;
     public override int MaxTrailLength => 4;
@@ -24,19 +22,17 @@ public class Droid : Enemy
     public override string Info => "A basic enemy";
     public override string Name => "Bot";
 
-    void Start()
+    private void Start()
     {
         if (!loaded)
         {
             loaded = true;
             ASprite = Resources.Load<Sprite>("Characters/Enemies/Droid/DroidA");
             BSprite = Resources.Load<Sprite>("Characters/Enemies/Droid/DroidB");
-            //Debug.Log("ASprite = " + ASprite);
-           // Debug.Log("BSprite = " + BSprite);
         }
     }
 
-    void Update()
+    private void Update()
     {
         T += Time.deltaTime;
         if (T >= 1)

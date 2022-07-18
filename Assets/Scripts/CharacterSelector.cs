@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
+﻿using System.Collections;
 using UnityEngine;
 
 public static class CharacterSelector
 {
+    public static Player SelectedPlayer { get; private set; }
+
     private static bool Selecting = false;
     private static bool Waiting = false;
     public static Player Selection { get; set; }
@@ -16,12 +13,12 @@ public static class CharacterSelector
     private static void Enable()
     {
         Game.SidePanel.SetActive(true);
-        Dragger.Drag(Game.SidePanel, null, new Vector2(-55,50),3f,Interrupt: true);
+        GlobalRoutine.Start(Dragger.Drag(Game.SidePanel, null, new Vector2(-55, 50), 3f, Interrupt: true));
     }
 
     private static void Disable()
     {
-        Dragger.Drag(Game.SidePanel, null, new Vector2(105, 50), 3f, Interrupt: true);
+        GlobalRoutine.Start(Dragger.Drag(Game.SidePanel, null, new Vector2(105, 50), 3f, Interrupt: true));
     }
 
     public static void Cancel()
@@ -30,12 +27,12 @@ public static class CharacterSelector
     }
 
     //Returns a player on successful selection, returns null if unsuccessful
-    public static async Task<Player> Select(Vector2Int spawnPosition)
+    public static IEnumerator Select(Vector2Int spawnPosition)
     {
         if (Selecting == true)
         {
             Waiting = false;
-            await Tasker.Run(() => { while (Selecting) { } });
+            yield return new WaitUntil(() => !Selecting);
             Selecting = false;
         }
         Selecting = true;
@@ -43,27 +40,22 @@ public static class CharacterSelector
         Selection = null;
         SpawnPosition = spawnPosition;
         Enable();
-        await Task.Run(() => { while (Selection == null && Waiting == true) { } });
+        yield return new WaitUntil(() => !(Selection == null && Waiting == true));
         Selecting = false;
         Waiting = false;
         if (Selection != null)
         {
             Disable();
-            return Selection;
+            SelectedPlayer = Selection;
         }
         else
         {
             Disable();
-            return null;
-            //Initiate cancelation protocol
+            SelectedPlayer = null;
         }
-        //TEMPORARY
-        //var player = Game.SpawnCharacter<Knife>(SpawnPosition);
-        /*var player = GameObject.Instantiate(TileManager.Tiles[3]).GetComponent<Player>();
-        player.OnSpawn();*/
 
 
-        
+
     }
     public static void UndoSelection(Player player)
     {

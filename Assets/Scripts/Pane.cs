@@ -1,8 +1,6 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,24 +13,14 @@ public class Pane : MonoBehaviour
         if (!Initialized)
         {
             Initialized = true;
-            //var Panes = FindObjectsOfType<Pane>();
-            var Panes = Resources.FindObjectsOfTypeAll<Pane>();
-            foreach (var pane in Panes)
+            Pane[] Panes = Resources.FindObjectsOfTypeAll<Pane>();
+            foreach (Pane pane in Panes)
             {
-                //CDebug.Log("Pane = " + pane);
                 PaneMap.Add(pane.name, pane);
-                //pane.gameObject.SetActive(false);
             }
         }
-       // CDebug.Log("Panes = " + Panes);
     }
-    /*public static void Disable()
-    {
-        foreach (var pane in PaneMap)
-        {
-            pane.Value.gameObject.SetActive(false);
-        }
-    }*/
+
     public static Pane GetPane(string Name)
     {
         return PaneMap[Name];
@@ -58,36 +46,34 @@ public class Pane : MonoBehaviour
     private bool Moving = false;
     private bool Done = false;
 
-    public static async Task SwitchTo(Pane From,Pane To,float Speed = 1f,float Distance = 1f,bool MoveCamera = true)
+    public static IEnumerator SwitchTo(Pane From, Pane To, float Speed = 1f, float Distance = 1f, bool MoveCamera = true)
     {
-        Task fromTask = From.Move(Fade.Out, Direction.Towards, Speed, Distance, Interrupt: true);
-        Task toTask = To.Move(Fade.In, Direction.Towards, Speed, Distance, Interrupt: true);
+        Coroutine from = GlobalRoutine.Start(From.Move(Fade.Out, Direction.Towards, Speed, Distance, Interrupt: true));
+        Coroutine to = GlobalRoutine.Start(To.Move(Fade.In, Direction.Towards, Speed, Distance, Interrupt: true));
         if (MoveCamera)
         {
-            Task camera = CameraTarget.MoveForward(Distance, Speed);
-            await camera;
+            yield return CameraTarget.MoveForward(Distance, Speed);
         }
-        await fromTask;
-        await toTask;
-        
+        yield return from;
+        yield return to;
     }
 
-    public static async Task SwitchBackTo(Pane From, Pane To, float Speed = 1f,float Distance = 1,bool MoveCamera = true)
+    public static IEnumerator SwitchBackTo(Pane From, Pane To, float Speed = 1f, float Distance = 1, bool MoveCamera = true)
     {
-        Task fromTask = From.Move(Fade.Out, Direction.Away, Speed, Distance, Interrupt: true);
-        Task toTask = To.Move(Fade.In, Direction.Away,Speed,Distance, Interrupt: true);
+        Coroutine from = GlobalRoutine.Start(From.Move(Fade.Out, Direction.Away, Speed, Distance, Interrupt: true));
+        Coroutine to = GlobalRoutine.Start(To.Move(Fade.In, Direction.Away, Speed, Distance, Interrupt: true));
         if (MoveCamera)
         {
-            Task camera = CameraTarget.MoveBackward(Distance, Speed);
-            await camera;
+            yield return CameraTarget.MoveBackward(Distance, Speed);
         }
-        await fromTask;
-        await toTask;
+
+        yield return from;
+        yield return to;
     }
 
     public void Enable(Vector3? ResetPosition = null)
     {
-        var group = GetComponent<CanvasGroup>();
+        CanvasGroup group = GetComponent<CanvasGroup>();
         gameObject.SetActive(true);
         group.alpha = 1;
         group.blocksRaycasts = true;
@@ -96,15 +82,14 @@ public class Pane : MonoBehaviour
             ResetPosition = Vector3.zero;
         }
         transform.localPosition = ResetPosition.Value;
-        //transform.localPosition = Vector3.zero;
-        var buttons = GetComponentsInChildren<Button>();
-        foreach (var button in buttons)
+        Button[] buttons = GetComponentsInChildren<Button>();
+        foreach (Button button in buttons)
         {
             button.enabled = true;
         }
     }
 
-    public async Task Move(Fade fade, Direction direction,float Speed = 1f,float Distance = 1, Func<float,float,float,float> lerpFunc = null,bool Interrupt = false)
+    public IEnumerator Move(Fade fade, Direction direction, float Speed = 1f, float Distance = 1, Func<float, float, float, float> lerpFunc = null, bool Interrupt = false)
     {
         Distance *= CameraTarget.PlaneDistance;
         if (Moving)
@@ -113,7 +98,7 @@ public class Pane : MonoBehaviour
             {
                 Done = true;
             }
-            await Tasker.Run(() => { while (Moving) { } });
+            yield return new WaitUntil(() => !Moving);
             Done = false;
         }
         if (lerpFunc == null)
@@ -121,24 +106,18 @@ public class Pane : MonoBehaviour
             lerpFunc = LerpManager.SmoothLerp;
         }
         Moving = true;
-        var buttons = GetComponentsInChildren<Button>();
-        var canvas = GetComponentInParent<Canvas>();
-        var ScreenFactor = canvas.worldCamera.ScreenToWorldPoint(Vector3.one) - canvas.worldCamera.ScreenToWorldPoint(Vector3.zero);
-        //Debug.Log("Screen Factor = " + ScreenFactor);
-        //Distance = ScreenFactor.z * Distance;
-        //Distance = canvas.worldCamera.ScreenToWorldPoint(new Vector3(0, 0, -Distance)).z;
+        Button[] buttons = GetComponentsInChildren<Button>();
+        Canvas canvas = GetComponentInParent<Canvas>();
+        Vector3 ScreenFactor = canvas.worldCamera.ScreenToWorldPoint(Vector3.one) - canvas.worldCamera.ScreenToWorldPoint(Vector3.zero);
         Distance /= canvas.GetComponent<RectTransform>().localScale.z;
-        //float MaxSize = 4f;
-        //float MinSize = 0.25f;
-        var group = GetComponent<CanvasGroup>();
-        var rect = GetComponent<RectTransform>();
+        CanvasGroup group = GetComponent<CanvasGroup>();
+        RectTransform rect = GetComponent<RectTransform>();
         if (fade == Fade.Out)
         {
             group.alpha = 1;
             group.blocksRaycasts = false;
-            //rect.localScale = Vector3.one;
             transform.localPosition = Vector3.zero;
-            foreach (var button in buttons)
+            foreach (Button button in buttons)
             {
                 button.enabled = false;
             }
@@ -150,16 +129,13 @@ public class Pane : MonoBehaviour
             group.blocksRaycasts = true;
             if (direction == Direction.Towards)
             {
-                //rect.localScale = new Vector3(MinSize, MinSize, 1f);
-                //transform.localPosition = Vector3.zero;
                 transform.localPosition = new Vector3(0, 0, Distance);
             }
             else
             {
-                //rect.localScale = new Vector3(MaxSize, MaxSize, 1f);
-                transform.localPosition = new Vector3(0,0,-Distance);
+                transform.localPosition = new Vector3(0, 0, -Distance);
             }
-            foreach (var button in buttons)
+            foreach (Button button in buttons)
             {
                 button.enabled = true;
             }
@@ -178,15 +154,13 @@ public class Pane : MonoBehaviour
             }
             if (fade == Fade.Out)
             {
-                group.alpha = lerpFunc(1f,0f,T);
+                group.alpha = lerpFunc(1f, 0f, T);
                 if (direction == Direction.Towards)
                 {
-                    //rect.localScale = new Vector3(lerpFunc(1f, MaxSize, T), lerpFunc(1f, MaxSize, T), 1f);
-                    transform.localPosition = new Vector3(0,0,lerpFunc(0,-Distance,T));
+                    transform.localPosition = new Vector3(0, 0, lerpFunc(0, -Distance, T));
                 }
                 else
                 {
-                    //rect.localScale = new Vector3(lerpFunc(1f, MinSize, T), lerpFunc(1f, MinSize, T), 1f);
                     transform.localPosition = new Vector3(0, 0, lerpFunc(0, Distance, T));
                 }
                 if (T == 1)
@@ -198,16 +172,12 @@ public class Pane : MonoBehaviour
             else
             {
                 group.alpha = lerpFunc(0f, 1f, T);
-                //rect.localScale = new Vector3(lerpFunc(MinSize, 1f, T), lerpFunc(MinSize, 1f, T), 1f);
                 if (direction == Direction.Towards)
                 {
-                    //rect.localScale = new Vector3(lerpFunc(MinSize, 1f, T), lerpFunc(MinSize, 1f, T), 1f);
                     transform.localPosition = new Vector3(0, 0, lerpFunc(Distance, 0, T));
                 }
                 else
                 {
-                    //Debug.Log("Away");
-                    //rect.localScale = new Vector3(lerpFunc(MaxSize, 1f, T), lerpFunc(MaxSize, 1f, T), 1f);
                     transform.localPosition = new Vector3(0, 0, lerpFunc(-Distance, 0, T));
                 }
                 if (T == 1)
@@ -217,11 +187,10 @@ public class Pane : MonoBehaviour
             }
         };
         StaticUpdate.Updates += func;
-        await Tasker.Run(() => { while (!Done) { } });
+        yield return new WaitUntil(() => Done);
         StaticUpdate.Updates -= func;
         Done = false;
         Moving = false;
-
     }
 }
 

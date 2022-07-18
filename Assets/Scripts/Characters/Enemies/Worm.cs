@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-public class Worm : Enemy
+﻿public class Worm : Enemy
 {
     public override string Info => "Is able to store lots of health";
 
-    public override int GetTileID() => 7;
+    public override int GetTileID()
+    {
+        return 7;
+    }
 
     public override int AttackDamage => 3;
 

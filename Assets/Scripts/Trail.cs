@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Trail : MonoBehaviour
 {
     public Character Host;
-    Color? previousColor = null;
-    float MinAlpha = 128;
-    float T = 0;
-    bool Direction = true;
-    new SpriteRenderer renderer;
+    private Color? previousColor = null;
+    private float MinAlpha = 128;
+    private float T = 0;
+    private bool Direction = true;
+    private new SpriteRenderer renderer;
     private bool flash = false;
-    float Speed = 3f;
+    private float Speed = 3f;
     public bool Flash
     {
         get => flash;
@@ -36,12 +31,12 @@ public class Trail : MonoBehaviour
         }
     }
 
-    void Start()
+    private void Start()
     {
         renderer = GetComponent<SpriteRenderer>();
     }
-    
-    void Update()
+
+    private void Update()
     {
         if (Flash)
         {
@@ -63,7 +58,7 @@ public class Trail : MonoBehaviour
                     Direction = true;
                 }
             }
-            renderer.color = new Color(renderer.color.r,renderer.color.g,renderer.color.b,Mathf.Lerp(1f,0.5f,T));
+            renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, Mathf.Lerp(1f, 0.5f, T));
         }
     }
 }

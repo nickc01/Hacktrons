@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Target : MonoBehaviour
@@ -8,7 +6,8 @@ public class Target : MonoBehaviour
     public static bool TargetEnabled = true;
     public static Action TutorialTargetEvent;
     public event Action TargetSelectEvent;
-    void OnMouseDown()
+
+    private void OnMouseDown()
     {
         if (TargetEnabled)
         {

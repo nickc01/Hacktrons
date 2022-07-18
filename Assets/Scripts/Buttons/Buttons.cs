@@ -1,39 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
-//namespace Game
-//{
 public static class Buttons
 {
-
-    //public static bool StartButtonAFT = false;
     public static Action StartButtonTutClick;
     public static Action FinishButtonTutClick;
     public static Action AttackButtonTutClick;
     public static bool DisableCancel = false;
     public static bool DisableAttack = false;
     public static bool DisableFinish = false;
-    public static async void PlayButton()
+    public static void PlayButton()
     {
-        //await CanvasController.MovePanes("Main Menu", "Select Level");
         Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
-        await Pane.SwitchTo("Main Menu", "Select Level");
+        GlobalRoutine.Start(Pane.SwitchTo("Main Menu", "Select Level"));
     }
-    public static async void BackMainMenuButton()
+    public static void BackMainMenuButton()
     {
-        //await CanvasController.MovePanes("Select Level", "Main Menu");
         Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
-        await Pane.SwitchBackTo("Select Level", "Main Menu");
+        GlobalRoutine.Start(Pane.SwitchBackTo("Select Level", "Main Menu"));
     }
 
     public static void StartGameButton()
     {
-        //GameObject.FindGameObjectWithTag("Canvas").SetActive(false);
-        //ScreenCapture.CaptureScreenshot("LevelScreenShot",2);
         if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && StartButtonTutClick != null))
         {
             if (Player.Players.Count > 0)
@@ -44,10 +32,11 @@ public static class Buttons
                     StartButtonTutClick = null;
                 }
                 Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
-                Game.StartGame();
+                GlobalRoutine.Start(Game.StartGame());
             }
         }
     }
+
     //Called when the player wishes to attack
     public static void AttackButton()
     {
@@ -59,15 +48,13 @@ public static class Buttons
                 AttackButtonTutClick = null;
             }
             Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
-            Player.ActivePlayer.InitiateAttack();
+            GlobalRoutine.Start(Player.ActivePlayer.InitiateAttack());
         }
     }
 
     //Called when the player wants to finish the turn
     public static void FinishTurnButton()
     {
-        //if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && FinishButtonTutClick != null))
-        //{
         if (FinishButtonTutClick != null)
         {
             FinishButtonTutClick?.Invoke();
@@ -75,10 +62,8 @@ public static class Buttons
         }
         if (DisableFinish == false)
         {
-            //Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
             Player.ActivePlayer?.FinishTurn();
         }
-        //}
     }
 
     //Called when the player wants to cancel the attack
@@ -94,7 +79,7 @@ public static class Buttons
     public static void BackButton()
     {
         Game.PrimaryAudio.PlayOneShot(Sounds.ButtonSound);
-        Game.ResetToSelectionScreen();
+        GlobalRoutine.Start(Game.ResetToSelectionScreen());
     }
 
     public static void QuitButton()
@@ -103,4 +88,3 @@ public static class Buttons
         Application.Quit();
     }
 }
-//}

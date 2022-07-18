@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Sounds : MonoBehaviour
 {
@@ -28,7 +26,7 @@ public class Sounds : MonoBehaviour
     private AudioClip damageSound;
     public static AudioClip DamageSound => Instance.damageSound;
 
-    void Start()
+    private void Start()
     {
         Instance = this;
     }

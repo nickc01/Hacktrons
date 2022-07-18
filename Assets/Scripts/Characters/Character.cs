@@ -1,17 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public abstract class Character : MonoBehaviour, IHasID
 {
+    public static Character LastRequestedCharacter { get; protected set; }
+    public static Component LastRequestedComponent { get; protected set; }
+
     protected GameObject Check;
-    new private AudioSource audio;
+    private new AudioSource audio;
     protected bool AttackedEnemy = false;
     public static bool ReselectionEnabled { get; protected set; } = true;
     public virtual void OnSpawn()
@@ -25,10 +24,6 @@ public abstract class Character : MonoBehaviour, IHasID
     }
     public virtual void OnDestruction()
     {
-        /*for (int i = 0; i < Trails.Count; i++)
-        {
-            RemoveLastTrail();
-        }*/
         Game.GameMap[(int)transform.position.x, (int)transform.position.y] = null;
     }
 
@@ -94,9 +89,6 @@ public abstract class Character : MonoBehaviour, IHasID
             }
             else
             {
-                //var check = GameObject.Instantiate(Game.CharacterCheck, transform.position, Quaternion.identity);
-                //check.SetActive(true);
-                //Check = check;
                 TurnPostpone();
             }
         }
@@ -104,14 +96,14 @@ public abstract class Character : MonoBehaviour, IHasID
 
     public void FinishTurn()
     {
-        var check = GameObject.Instantiate(Game.CharacterCheck, transform.position, Quaternion.identity);
+        GameObject check = GameObject.Instantiate(Game.CharacterCheck, transform.position, Quaternion.identity);
         check.SetActive(true);
         Check = check;
         FinishedTurn = true;
         Deselect();
     }
 
-    void OnMouseDown()
+    private void OnMouseDown()
     {
         if (Game.GameStarted)
         {
@@ -136,35 +128,33 @@ public abstract class Character : MonoBehaviour, IHasID
     [SerializeField]
     protected Color characterColor;
     public Color CharacterColor => characterColor;
-    bool Done = false;
+
+    private bool Done = false;
 
     protected List<Trail> trails = new List<Trail>();
 
     public ReadOnlyCollection<Trail> Trails => trails.AsReadOnly();
 
-    protected virtual async Task Move(Vector2Int to,float Speed,bool spawnTrail = true)
+    protected virtual IEnumerator Move(Vector2Int to, float Speed, bool spawnTrail = true)
     {
-        //Done = false;
         if (MovesDone == MovesMax)
         {
-            return;
+            yield break;
         }
         if (Moving)
         {
             Moving = false;
-            await Tasker.Run(() => {
-                while (!Done) { }
-            });
+            yield return new WaitUntil(() => Done);
         }
         Done = false;
         float T = 0;
         audio.PlayOneShot(Sounds.MovementSound);
         Vector3 From = transform.position;
-        Vector3 To = new Vector3(to.x,to.y,transform.position.z);
+        Vector3 To = new Vector3(to.x, to.y, transform.position.z);
         Action Update = () =>
         {
             T += Time.deltaTime * Speed;
-            transform.position = Vector3.Lerp(From,To,1 - Mathf.Pow(1 - T,4));
+            transform.position = Vector3.Lerp(From, To, 1 - Mathf.Pow(1 - T, 4));
             if (T >= 1)
             {
                 Done = true;
@@ -175,7 +165,6 @@ public abstract class Character : MonoBehaviour, IHasID
         MovesDone++;
         if (spawnTrail)
         {
-            Debug.Log("Spawning Trail");
             try
             {
                 SpawnTrail();
@@ -184,21 +173,19 @@ public abstract class Character : MonoBehaviour, IHasID
             {
                 Debug.LogError(e);
             }
-            
+
         }
         Moving = true;
         CharacterStats.Refresh();
         StaticUpdate.Updates += Update;
-        await Tasker.Run(() => {
-            while (!Done && Moving) { }
-        });
+        yield return new WaitUntil(() => !(!Done && Moving));
         transform.position = To;
         Done = true;
         Moving = false;
         StaticUpdate.Updates -= Update;
     }
 
-    public async Task Damage(int damage)
+    public IEnumerator Damage(int damage)
     {
         audio.PlayOneShot(Sounds.DamageSound);
         for (int i = 0; i < damage; i++)
@@ -206,29 +193,28 @@ public abstract class Character : MonoBehaviour, IHasID
             if (trails.Count > 0)
             {
                 RemoveLastTrail();
-                await Task.Run(() => Thread.Sleep(100));
+                yield return new WaitForSeconds(0.1f);
             }
             else
             {
                 Game.DestroyCharacter(this);
-                await Task.Run(() => Thread.Sleep(100));
+                yield return new WaitForSeconds(0.1f);
                 break;
             }
         }
     }
     //Requests an enemy to attack
-    protected async virtual Task<(Character,Component)> RequestToAttack()
+    protected virtual IEnumerator RequestToAttack()
     {
-        return (null,null);
+        LastRequestedCharacter = null;
+        LastRequestedComponent = null;
+        yield break;
     }
 
-    protected Trail SpawnTrail(bool ToEnd = false)
+    protected Trail SpawnTrail()
     {
-        //System.Span<int> test;
-        Debug.Log("A");
-        var NewTrail = GameObject.Instantiate(Game.Trail.gameObject).GetComponent<Trail>();
-        Debug.Log("B");
-        NewTrail.transform.position = transform.position; //new Vector3(transform.position.x,transform.position.y,transform.position.z - 2);
+        Trail NewTrail = GameObject.Instantiate(Game.Trail.gameObject).GetComponent<Trail>();
+        NewTrail.transform.position = transform.position;
         NewTrail.GetComponent<SpriteRenderer>().color = CharacterColor;
         NewTrail.Host = this;
         Game.GameMap[(int)transform.position.x, (int)transform.position.y] = NewTrail;
@@ -245,7 +231,7 @@ public abstract class Character : MonoBehaviour, IHasID
     }
     protected void RemoveLastTrail()
     {
-        var LastTrail = trails[trails.Count - 1];
+        Trail LastTrail = trails[trails.Count - 1];
         trails.Remove(LastTrail);
         Game.GameMap[(int)LastTrail.transform.position.x, (int)LastTrail.transform.position.y] = null;
         GameObject.Destroy(LastTrail.gameObject);
@@ -253,7 +239,7 @@ public abstract class Character : MonoBehaviour, IHasID
 
     public void DeleteAllTrails()
     {
-        foreach (var trail in trails)
+        foreach (Trail trail in trails)
         {
             Game.GameMap[(int)trail.transform.position.x, (int)trail.transform.position.y] = null;
             GameObject.Destroy(trail.gameObject);

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SpriteHighlighter : MonoBehaviour
 {
@@ -11,11 +6,12 @@ public class SpriteHighlighter : MonoBehaviour
     public static Rect Region = default;
     public static float Z = 0;
     public static SpriteHighlighter highlighter { get; private set; }
-    new private static SpriteRenderer renderer;
-    bool Direction = true;
-    float Transparency = 0f;
-    float TransparencySpeed = 10f;
-    void Start()
+    private static new SpriteRenderer renderer;
+    private bool Direction = true;
+    private float Transparency = 0f;
+    private float TransparencySpeed = 10f;
+
+    private void Start()
     {
         highlighter = this;
         renderer = GetComponent<SpriteRenderer>();
@@ -32,7 +28,7 @@ public class SpriteHighlighter : MonoBehaviour
         highlighter.gameObject.SetActive(false);
     }
 
-    void Update()
+    private void Update()
     {
         if (Direction)
         {
@@ -56,12 +52,11 @@ public class SpriteHighlighter : MonoBehaviour
         if (SetTransform != null)
         {
             transform.position = SetTransform.position;
-            //transform.localScale = SetTransform.lossyScale;
             renderer.size = SetTransform.lossyScale;
         }
         else
         {
-            transform.position = new Vector3(Region.xMin - 0.5f + Region.width / 2, Region.yMin - 0.5f + Region.height / 2,Z);
+            transform.position = new Vector3(Region.xMin - 0.5f + Region.width / 2, Region.yMin - 0.5f + Region.height / 2, Z);
             renderer.size = new Vector2(Region.width, Region.height);
         }
     }

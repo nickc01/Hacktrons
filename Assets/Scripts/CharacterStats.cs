@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using TMPro;
 using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CharacterStats : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
@@ -29,7 +27,7 @@ public class CharacterStats : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     public static Character MainCharacter;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         Instance = this;
         group = GetComponent<CanvasGroup>();
@@ -38,9 +36,9 @@ public class CharacterStats : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         Clear();
     }
 
-    void Update()
+    private void Update()
     {
-        group.alpha = Mathf.Lerp(group.alpha,TargetAlpha,5f * Time.deltaTime);
+        group.alpha = Mathf.Lerp(group.alpha, TargetAlpha, 5f * Time.deltaTime);
     }
 
     public static void Clear()
@@ -54,7 +52,6 @@ public class CharacterStats : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         Instance.Info.text = "";
         Instance.MaxMoves.text = "";
         Instance.CharacterTexture.texture = null;
-        //Instance.Blocker.SetActive(true);
         Instance.gameObject.SetActive(false);
     }
 

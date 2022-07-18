@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ToolSelector : MonoBehaviour
 {
     // Start is called before the first frame update
-    Button button;
-    RawImage image;
-    Text amountText;
+    private Button button;
+    private RawImage image;
+    private Text amountText;
     public Player SetPlayer { get; set; }
     private int currentAmount = 0;
-    bool Initialized = false;
+    private bool Initialized = false;
     //public static bool ActiveForTutorial = false;
     public static Action TutorialOnClick;
     public int CurrentAmount
@@ -48,7 +46,7 @@ public class ToolSelector : MonoBehaviour
         CurrentAmount++;
     }
 
-    void OnClick()
+    private void OnClick()
     {
         if (!TutorialRoutine.TutorialActive || (TutorialRoutine.TutorialActive && TutorialOnClick != null))
         {

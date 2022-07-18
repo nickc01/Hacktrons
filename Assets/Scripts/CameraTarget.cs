@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 public class CameraTarget : MonoBehaviour
@@ -44,20 +42,20 @@ public class CameraTarget : MonoBehaviour
     }
     public static float PlaneDistance => PrimaryCanvas.planeDistance;
     public static Vector2 PlaneDimensions => new Vector2(PrimaryCanvas.pixelRect.width, PrimaryCanvas.pixelRect.height);
+
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         instance = this;
         mainCameras = FindObjectsOfType<Camera>();
         BasePosition = mainCameras[0].transform.position;
     }
 
-    void Update()
+    private void Update()
     {
         if (Active)
         {
-            //CDebug.Log($"Camera = {mainCamera}");
-            foreach (var mainCamera in mainCameras)
+            foreach (Camera mainCamera in mainCameras)
             {
                 mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, Position, Time.deltaTime * instance.CameraSpeed);
                 if (Movable)
@@ -82,10 +80,7 @@ public class CameraTarget : MonoBehaviour
                 }
                 if (Zooming)
                 {
-                    //Debug.Log("Zooming");
-                    //if (Input.GetKeyDown(KeyCode.Mouse2))
-                    //{
-                    var Z = Position.z + Input.GetAxis("Mouse ScrollWheel") * ZoomSpeed;
+                    float Z = Position.z + Input.GetAxis("Mouse ScrollWheel") * ZoomSpeed;
                     if (Input.GetKeyDown(KeyCode.PageDown))
                     {
                         Z += ZoomSpeed;
@@ -103,9 +98,6 @@ public class CameraTarget : MonoBehaviour
                         Z = MinZ;
                     }
                     Position = new Vector3(Position.x, Position.y, Z);
-
-                    
-                    //}
                 }
             }
         }
@@ -133,9 +125,8 @@ public class CameraTarget : MonoBehaviour
     {
         if (Boundaries != null && !Boundaries.Value.Contains(transform.position))
         {
-            var rect = Boundaries.Value;
-            //Debug.Log("Rect = " + rect);
-            var pos = transform.position;
+            Rect rect = Boundaries.Value;
+            Vector3 pos = transform.position;
             if (pos.x > rect.xMax)
             {
                 pos = new Vector3(rect.xMax, pos.y, pos.z);
@@ -159,89 +150,72 @@ public class CameraTarget : MonoBehaviour
     //Warps the camera to a specified position
     public static void WarpCamera(Vector3 position)
     {
-        Position = new Vector3(position.x,position.y,-10);
+        Position = new Vector3(position.x, position.y, -10);
         instance.Check();
-        foreach (var mainCamera in mainCameras)
+        foreach (Camera mainCamera in mainCameras)
         {
             mainCamera.transform.position = new Vector3(position.x, position.y, -10);
         }
     }
 
-    public static async Task MoveForward(float Distance = 1f, float Speed = 1f,bool Instant = true)
-    {
-        /*if (Distance == null)
-        {
-            Distance = GameObject.FindGameObjectWithTag("Canvas").GetComponent<Canvas>().planeDistance;
-        }*/
-        Distance *= PlaneDistance;
-        await Move(Position, Position + Vector3.forward * Distance,Speed,Instant);
-    }
-
-    public static async Task MoveBackward(float Distance = 1f, float Speed = 1f,bool Instant = true)
+    public static IEnumerator MoveForward(float Distance = 1f, float Speed = 1f, bool Instant = true)
     {
         Distance *= PlaneDistance;
-        await Move(Position, Position + Vector3.back * Distance,Speed,Instant);
+        return Move(Position, Position + Vector3.forward * Distance, Speed, Instant);
     }
 
-    public static async Task Move(Vector3 From, Vector3 To,float Speed = 1f,bool Instant = true, Func<float,float,float,float> lerpFunc = null)
+    public static IEnumerator MoveBackward(float Distance = 1f, float Speed = 1f, bool Instant = true)
     {
-        try
-        {
-           // Debug.Log("ATTEMPTING MOVE");
-            if (lerpFunc == null)
-            {
-                lerpFunc = LerpManager.SmoothLerp;
-            }
-            if (Moving)
-            {
-                Moving = false;
-                await Tasker.Run(() => { while (!Done) { } });
-            }
-            //Debug.Log("Moving");
-            //bool Done = false;
-            Done = false;
-            bool Finished = false;
-            Moving = true;
-            float T = 0;
-            float CamSpeed = instance.CameraSpeed;
-            if (Instant)
-            {
-                instance.CameraSpeed = 99999f;
-            }
+        Distance *= PlaneDistance;
+        return Move(Position, Position + Vector3.back * Distance, Speed, Instant);
+    }
 
-            Action func = () =>
-            {
-                if (Finished)
-                {
-                    return;
-                }
-                T += Time.deltaTime * Speed;
-                if (T > 1)
-                {
-                    T = 1;
-                }
-                Position = new Vector3(lerpFunc(From.x, To.x, T), lerpFunc(From.y, To.y, T), lerpFunc(From.z, To.z, T));
-                if (T == 1)
-                {
-                    Finished = true;
-                }
-            };
-            StaticUpdate.Updates += func;
-            await Tasker.Run(() => { while (!Finished && Moving) { } });
-            StaticUpdate.Updates -= func;
-            if (Instant)
-            {
-                instance.CameraSpeed = CamSpeed;
-            }
-            Debug.Log("Move Done");
+    public static IEnumerator Move(Vector3 From, Vector3 To, float Speed = 1f, bool Instant = true, Func<float, float, float, float> lerpFunc = null)
+    {
+        if (lerpFunc == null)
+        {
+            lerpFunc = LerpManager.SmoothLerp;
+        }
+        if (Moving)
+        {
             Moving = false;
-            Done = true;
-            //Done = false;
-            //Moving = false;
+            yield return new WaitUntil(() => Done);
         }
-        catch (Exception e)
+        Done = false;
+        bool Finished = false;
+        Moving = true;
+        float T = 0;
+        float CamSpeed = instance.CameraSpeed;
+        if (Instant)
         {
-            Debug.LogError(e);
+            instance.CameraSpeed = 99999f;
         }
+
+        Action func = () =>
+        {
+            if (Finished)
+            {
+                return;
+            }
+            T += Time.deltaTime * Speed;
+            if (T > 1)
+            {
+                T = 1;
+            }
+            Position = new Vector3(lerpFunc(From.x, To.x, T), lerpFunc(From.y, To.y, T), lerpFunc(From.z, To.z, T));
+            if (T == 1)
+            {
+                Finished = true;
+            }
+        };
+        StaticUpdate.Updates += func;
+        yield return new WaitUntil(() => !(!Finished && Moving));
+        StaticUpdate.Updates -= func;
+        if (Instant)
+        {
+            instance.CameraSpeed = CamSpeed;
+        }
+        Moving = false;
+        Done = true;
     }
 }

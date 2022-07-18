@@ -1,22 +1,19 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 
 public class TutorialArea : MonoBehaviour
 {
     // Start is called before the first frame update
     public static TutorialArea Instance { get; private set; }
     public static GameObject ButtonArea { get; private set; }
-    bool Initialized = false;
 
-    TextMeshProUGUI textArea;
+    private bool Initialized = false;
+    private TextMeshProUGUI textArea;
 
     [SerializeField]
     private AudioClip tutorialSound;
 
-    public static AudioClip TutorialSound => Instance.tutorialSound; 
+    public static AudioClip TutorialSound => Instance.tutorialSound;
 
     public static string TextArea
     {
@@ -33,11 +30,5 @@ public class TutorialArea : MonoBehaviour
             textArea = GetComponentInChildren<TextMeshProUGUI>();
             ButtonArea = GameObject.FindGameObjectWithTag("ButtonArea");
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

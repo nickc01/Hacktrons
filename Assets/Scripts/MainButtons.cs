@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 public class MainButtons : MonoBehaviour
 {
@@ -15,8 +12,7 @@ public class MainButtons : MonoBehaviour
     public static GameObject Attack => Instance.attack;
     public static GameObject CancelAttack => Instance.cancelAttack;
 
-
-    void Start()
+    private void Start()
     {
         Instance = this;
     }
